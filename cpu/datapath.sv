@@ -20,7 +20,7 @@ module datapath(
 	input z_en,
 	input n_en,
 	output [15:0] ir_out_rf_read, //new
-	output [15:0] ir_out_execute,
+	output [15:0] ir_out_execute, //new
 	output z,
 	output n
 	);
