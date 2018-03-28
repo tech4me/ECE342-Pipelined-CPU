@@ -8,14 +8,17 @@ module rf(
 	input only_high,
 	input write_en,
 	output [15:0]rf_out_A,
-	output [15:0]rf_out_B
+	output [15:0]rf_out_B,
+	output [7:0][15:0]rf
 	);
 logic [7:0]rf_load;
 decoder decode_dut(
 	.addr(addr),
 	.addr_de(rf_load)	
 	);
-logic [15:0] regfile[0:7];
+logic [7:0][15:0] regfile;
+
+assign rf = regfile;
 
 genvar i;
 generate 
@@ -45,7 +48,7 @@ inside_rf_mux inside_B(
 endmodule // rf
 
 module inside_rf_mux(
-	input[15:0] regfile[0:7],
+	input [7:0][15:0]regfile,
 	input [2:0]rf_addr,
 	output logic [15:0]rf_out
 	);
