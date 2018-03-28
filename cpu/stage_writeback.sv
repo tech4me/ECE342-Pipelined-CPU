@@ -6,7 +6,7 @@ module stage_writeback (
     input z,
     input n,
 	output logic rf_write_en,
-    output logic only_high
+    output logic only_high,
     output logic [2:0] rf_addr, 
     output [15:0] rf_data,
     output logic pc_enable,
