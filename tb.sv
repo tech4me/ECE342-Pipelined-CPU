@@ -160,7 +160,7 @@ always_ff @ (posedge clk) begin
 		tstate.measure_cycles++;
 		
 		//if (o_pc_rd) tstate.measure_instrs++;
-		//if (dut.ctrl.br_taken_3) tstate.measure_instrs -= 2;
+		//if (dut.ctrl.br_taken_3 && dut.dp.valid_3) tstate.measure_instrs -= 2;
 	end
 	
 	// Once the CPU fetches the instruction at PC=measure_end,
