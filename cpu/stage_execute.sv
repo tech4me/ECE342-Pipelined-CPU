@@ -78,7 +78,7 @@ end
 always_comb begin
     case(ir_in_execute[3:0])
         OP_MV_X:  alu_mux_a_sel = 1;
-        OP_MVHI:  alu_mux_a_sel = 1;
+        OP_MVHI:  alu_mux_a_sel = 3;
         OP_CALL_X:  alu_mux_a_sel = 1;
         OP_J_X: begin
                     if(ir_in_execute[4])

@@ -15,6 +15,7 @@ always_comb begin
 		2'd0: alu_mux_A_out = rf_out_A;
 		2'd1: alu_mux_A_out = 0;
 		2'd2: alu_mux_A_out = ({{5{ir_out_imm11[10]}}, ir_out_imm11} << 1);
+		2'd3: alu_mux_A_out = {8'd0, rf_out_A};
 		default: alu_mux_A_out = rf_out_A;
 	endcase
 end
