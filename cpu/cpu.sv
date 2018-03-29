@@ -31,8 +31,11 @@ logic [15:0] i_pc_out_in_fetch_stage;
 
 logic o_valid_out_in_fetch_stage;
 
-logic [15:0] i_rf_out_A_in_execute_stage;
-logic [15:0] i_rf_out_B_in_execute_stage;
+logic [15:0] i_rf_out_A_to_forward_mux;
+logic [15:0] i_rf_out_B_to_forward_mux;
+
+logic [15:0] i_rf_out_a_in_execute_stage;
+logic [15:0] i_rf_out_b_in_execute_stage;
 
 logic o_pc_fetch_enable_in_fetch_stage;
 
@@ -59,6 +62,9 @@ pc u_pc_writeback(
 logic [2:0] o_rf_sel_A_in_rf_read_stage;
 logic [2:0] o_rf_sel_B_in_rf_read_stage;
 
+assign i_rf_out_A_to_forward_mux = ? : i_rf_out_a_in_execute_stage;
+assign i_rf_out_B_to_forward_mux = ? : i_rf_out_b_in_execute_stage;
+
 rf u_rf_rf_read_writeback(
     .clk       (clk       ),
     .rst       (reset       ),
@@ -68,8 +74,8 @@ rf u_rf_rf_read_writeback(
     .rf_addr_B (o_rf_sel_B_in_rf_read_stage ),
     .only_high (o_only_high_in_writeback_stage ),
     .write_en  (o_write_en_in_writeback_stage  ),
-    .rf_out_A  (i_rf_out_A_in_execute_stage  ),
-    .rf_out_B  (i_rf_out_B_in_execute_stage  ),
+    .rf_out_A  (i_rf_out_A_to_forward_mux  ),
+    .rf_out_B  (i_rf_out_B_to_forward_mux  ),
     .rf        (o_tb_regs )
 );
 

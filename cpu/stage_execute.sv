@@ -3,6 +3,8 @@ module stage_execute(
 	input [15:0]rf_out_A,
 	input [15:0]rf_out_B,
     input [15:0]ir_in_execute,
+    input [15:0]rf_forward_data,
+    input [1:0]rf_forward_sel,
 
     input z,//part3
     input n,//part3
@@ -43,6 +45,8 @@ case(i_mem_rddata[3:0])
     //default:
 endcase
 */
+logic [15:0] rf_A_forward_out;
+logic [15:0] rf_B_forward_out;
 logic [1:0] alu_mux_a_sel;
 logic [2:0] alu_mux_b_sel;
 logic [15:0] alu_mux_A_out;
@@ -79,7 +83,6 @@ always_comb begin
     case(ir_in_execute[3:0])
         OP_MV_X:  alu_mux_a_sel = 1;
         OP_MVHI:  alu_mux_a_sel = 3;
-        OP_CALL_X:  alu_mux_a_sel = 1;
         OP_J_X: begin
                     if(ir_in_execute[4])
                         alu_mux_a_sel = 2;
@@ -98,6 +101,8 @@ always_comb begin
                     else
                         alu_mux_a_sel = 0;
                  end
+        OP_LD: alu_mux_a_sel=1;
+        OP_ST: alu_mux_a_sel=1;
         OP_CALL_X:begin
                     if(ir_in_execute[4])
                         alu_mux_a_sel = 2;
@@ -117,6 +122,8 @@ always_comb begin
         OP_SUB_X: alu_mux_b_sel=ir_in_execute[4] ? 0 : 1;
         OP_CMP_X: alu_mux_b_sel=ir_in_execute[4] ? 0 : 1;
         OP_MVHI:  alu_mux_b_sel=3;
+        OP_LD: alu_mux_b_sel=1;
+        OP_ST: alu_mux_b_sel=1;
         OP_CALL_X:alu_mux_b_sel=2;
         default: begin 
                     alu_mux_b_sel = 0;
@@ -124,11 +131,32 @@ always_comb begin
     endcase
 end
 
+always_comb begin
+    case(rf_forward_sel)
+        2'b00: begin
+            rf_A_forward_out = rf_out_A;
+            rf_B_forward_out = rf_out_B;
+        end
+        2'b01: begin
+            rf_A_forward_out = rf_forward_data;
+            rf_B_forward_out = rf_out_B;
+        end
+        2'b10: begin
+            rf_A_forward_out = rf_out_A;
+            rf_B_forward_out = rf_forward_data;
+        end
+        2'b11: begin
+            rf_A_forward_out = rf_forward_data;
+            rf_B_forward_out = rf_forward_data;
+        end
+    endcase
+end
+
 alu_mux u_alu_mux(
-	.rf_out_A      (rf_out_A      ),
+	.rf_out_A      (rf_A_forward_out      ),
 	.ir_out_imm8   (ir_in_execute[15:8]  ),
     .ir_out_imm11  (ir_in_execute[15:5]  ),
-	.rf_out_B      (rf_out_B      ),
+	.rf_out_B      (rf_B_forward_out      ),
 	.pc_out        (16'd127       ),//not implemented
 	.alu_mux_a_sel (alu_mux_a_sel ),
 	.alu_mux_b_sel (alu_mux_b_sel ),
@@ -145,23 +173,24 @@ alu u_alu(
 	.n       (wire_n        )
 );
 
-assign o_ldst_wrdata = rf_out_A;
+assign o_ldst_wrdata = rf_A_forward_out;
 
 always_comb begin
     case(ir_in_execute[3:0])
         OP_LD: begin 
                 o_ldst_rd = valid_in;
-                o_ldst_addr [15:1] = rf_out_B [15:1];
+                o_ldst_addr [15:1] = alu_out[15:1];
                 o_ldst_addr[0] = 0;
                end
         OP_ST: begin
                 o_ldst_wr = valid_in;
-                o_ldst_addr [15:1] = rf_out_B [15:1];
+                o_ldst_addr [15:1] = alu_out[15:1];
                 o_ldst_addr[0] = 0;
                end
         default: begin
-                    o_ldst_rd=0;
-                    o_ldst_wr=0;
+                o_ldst_rd=0;
+                o_ldst_wr=0;
+                o_ldst_addr = 0;
             end
     endcase
 end

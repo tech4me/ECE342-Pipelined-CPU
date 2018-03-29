@@ -20,4 +20,5 @@ assign rf_sel_B = mem_data[10:8];
 
 assign reg_A_en = valid_in;
 assign reg_B_en = valid_in;
+
 endmodule
