@@ -3,8 +3,8 @@ module seq_detect(
     input [15:0] i_ir_out_in_execute_stage,
     input [15:0] i_ir_out_in_writeback_stage,
     input [15:0] i_alu_reg_in_writeback_stage,
-    output logic detect_in_rf_read_stage,
-    output logic detect_in_execute_stage,
+    output logic [1:0]detect_reg_in_rf_read_stage,
+    output logic [1:0]detect_reg_in_execute_stage,
     output [15:0] i_alu_reg_from_writeback_stage_in_execute_stage,
     output [15:0] i_alu_reg_from_writeback_stage_in_rf_read_stage
 );
@@ -46,14 +46,14 @@ sub_detect(
     .detect_to_be_writeback(detect_to_be_writeback),
     .i_ir_out_in_to_be_corrected_stage(o_mem_data_in_rf_read_stage),
     .i_ir_out_in_writeback_stage(i_ir_out_in_writeback_stage),
-    .detect_signal(detect_in_execute_stage)
+    .detect_signal(detect_reg_in_rf_read_stage)
 );
 //belwo is for execute stage
 sub_detect(
     .detect_to_be_writeback(detect_to_be_writeback),
     .i_ir_out_in_to_be_corrected_stage(i_ir_out_in_execute_stage),
     .i_ir_out_in_writeback_stage(i_ir_out_in_writeback_stage),
-    .detect_signal(detect_in_rf_read_stage)
+    .detect_signal(detect_reg_in_execute_stage)
 );
 
 endmodule
