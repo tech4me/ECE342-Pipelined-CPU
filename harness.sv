@@ -3,15 +3,15 @@ module harness
 	input clk,
 	input reset,
 	
-	output [15:0] o_pc_addr,
-	output o_pc_rd,
+	output logic [15:0] o_pc_addr,
+	output logic o_pc_rd,
 	input [15:0] i_pc_rddata,
 	
-	output [15:0] o_ldst_addr,
-	output o_ldst_rd,
-	output o_ldst_wr,
+	output logic [15:0] o_ldst_addr,
+	output logic o_ldst_rd,
+	output logic o_ldst_wr,
 	input [15:0] i_ldst_rddata,
-	output [15:0] o_ldst_wrdata
+	output logic [15:0] o_ldst_wrdata
 );
 	// Register inputs and outputs
 	logic [15:0] o_pc_addr_r;

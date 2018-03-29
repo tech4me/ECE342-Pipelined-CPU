@@ -1,4 +1,4 @@
-module alu_result_reg (
+module _16bit_reg (
     input clk,
     input rst,
     input enable,

@@ -1,98 +1,3 @@
-/*module cpu(
-    input clk,
-    input reset,
-    output [15:0]o_mem_addr,
-    output o_mem_rd,
-    input [15:0]i_mem_rddata,
-    output o_mem_wr,
-    output [15:0]o_mem_wrdata
-
-
-
-//new
-	input clk,
-	input reset,
-	
-	output [15:0] o_pc_addr,
-	output o_pc_rd,
-	input [15:0] i_pc_rddata,
-	
-	output [15:0] o_ldst_addr,
-	output o_ldst_rd,
-	output o_ldst_wr,
-	input [15:0] i_ldst_rddata,
-	output [15:0] o_ldst_wrdata,
-	
-	output [7:0][15:0] o_tb_regs
-);
-
-	logic pc_inc;
-	logic [1:0] pc_mux_sel;
-	logic ir_enable;
-	logic alu_sub;
-	logic alu_mux_a_sel;
-	logic [2:0] alu_mux_b_sel;
-	logic [2:0] rf_w_addr;
-	logic rf_write_en;
-	logic rf_only_high;
-	logic [1:0] rf_mux_sel;
-	logic mem_mux_sel;
-	logic z_en;
-	logic n_en;
-	logic [15:0] ir_out;
-	logic z;
-	logic n;
-    
-datapath u_datapath(
-	.clk           (clk           ),
-    .rst           (reset         ),
-    .o_mem_addr    (o_mem_addr    ),
-    .i_mem_rddata  (i_mem_rddata  ),
-    .o_mem_wrdata  (o_mem_wrdata  ),
-    .pc_inc        (pc_inc        ),
-    .pc_mux_sel    (pc_mux_sel    ),
-    .ir_enable     (ir_enable     ),
-    .alu_sub       (alu_sub       ),
-    .alu_mux_a_sel (alu_mux_a_sel ),
-    .alu_mux_b_sel (alu_mux_b_sel ),
-    .rf_w_addr     (rf_w_addr     ),
-    .rf_write_en   (rf_write_en   ),
-    .rf_only_high  (rf_only_high  ),
-    .rf_mux_sel    (rf_mux_sel    ),
-    .mem_mux_sel   (mem_mux_sel   ),
-    .z_en          (z_en          ),
-    .n_en          (n_en          ),
-    .ir_out        (ir_out        ),
-    .z             (z             ),
-    .n             (n             )
-);
-control u_control(
-	.clk           (clk           ),
-    .rst           (reset         ),
-    .ir_out        (ir_out        ),
-    .i_mem_rddata  (i_mem_rddata  ),
-    .z             (z             ),
-    .n             (n             ),
-    .pc_inc        (pc_inc        ),
-    .pc_mux_sel    (pc_mux_sel    ),
-    .ir_enable     (ir_enable     ),
-    .alu_sub       (alu_sub       ),
-    .alu_mux_a_sel (alu_mux_a_sel ),
-    .alu_mux_b_sel (alu_mux_b_sel ),
-    .rf_w_addr     (rf_w_addr     ),
-    .rf_write_en   (rf_write_en   ),
-    .rf_only_high  (rf_only_high  ),
-    .rf_mux_sel    (rf_mux_sel    ),
-    .mem_mux_sel   (mem_mux_sel   ),
-    .z_en          (z_en          ),
-    .n_en          (n_en          ),
-    .o_mem_rd      (o_mem_rd      ),
-    .o_mem_wr      (o_mem_wr      )
-);
-
-endmodule
-*/
-
 module cpu
     (
         input clk,
@@ -111,153 +16,223 @@ module cpu
         output [7:0][15:0] o_tb_regs
     );
 //edge btw writeback and fetch
+logic [15:0] o_pc_mux_out_in_writeback_stage;
+logic o_pc_enable_in_writeback_stage;
+
+logic [2:0] o_rf_addr_in_writeback_stage;
+logic [15:0] o_rf_data_in_in_writeback_stage;
+
+logic o_only_high_in_writeback_stage;
+logic o_write_en_in_writeback_stage;
+
+logic o_pc_inc_in_fetch_stage;
+
+logic [15:0] i_pc_out_in_fetch_stage;
+
+logic o_valid_out_in_fetch_stage;
+
+logic [15:0] i_rf_out_A_in_execute_stage;
+logic [15:0] i_rf_out_B_in_execute_stage;
+
+logic o_pc_fetch_enable_in_fetch_stage;
+
     //fetch stage
 stage_fetch u_stage_fetch(
-	.valid_in    (valid_in    ),
-    .pc_out      (pc_out      ),
+	.valid_in    (1'b1    ),
+    .pc_out      (i_pc_out_in_fetch_stage),
     .o_pc_addr   (o_pc_addr   ),
     .o_pc_rd     (o_pc_rd     ),
-    .valid_out   (valid_out   ),
-    .pc_fetch_en (pc_fetch_en )
+    .valid_out   (o_valid_out_in_fetch_stage   ),
+    .pc_fetch_inc (o_pc_inc_in_fetch_stage),
+    .pc_fetch_en (o_pc_fetch_enable_in_fetch_stage)
 );
 
 pc u_pc_writeback(
     .clk           (clk           ),
-    .rst           (rst           ),
-    .pc_mux_out_in (pc_mux_out_in ),
-    .inc           (inc           ),
-    .enable        (enable        ),
-    .pc_out        (pc_out        )
+    .rst           (reset           ),
+    .pc_mux_out_in (o_pc_mux_out_in_writeback_stage ),
+    .inc           (o_pc_inc_in_fetch_stage           ),
+    .enable        (o_pc_enable_in_writeback_stage | o_pc_fetch_enable_in_fetch_stage       ),
+    .pc_out        (i_pc_out_in_fetch_stage        )
 );
+
+logic [2:0] o_rf_sel_A_in_rf_read_stage;
+logic [2:0] o_rf_sel_B_in_rf_read_stage;
 
 rf u_rf_rf_read_writeback(
     .clk       (clk       ),
-    .rst       (rst       ),
-    .addr      (addr      ),
-    .data_in   (data_in   ),
-    .rf_addr_A (rf_addr_A ),
-    .rf_addr_B (rf_addr_B ),
-    .only_high (only_high ),
-    .write_en  (write_en  ),
-    .rf_out_A  (rf_out_A  ),
-    .rf_out_B  (rf_out_B  )
+    .rst       (reset       ),
+    .addr      (o_rf_addr_in_writeback_stage      ),
+    .data_in   (o_rf_data_in_in_writeback_stage   ),
+    .rf_addr_A (o_rf_sel_A_in_rf_read_stage ),
+    .rf_addr_B (o_rf_sel_B_in_rf_read_stage ),
+    .only_high (o_only_high_in_writeback_stage ),
+    .write_en  (o_write_en_in_writeback_stage  ),
+    .rf_out_A  (i_rf_out_A_in_execute_stage  ),
+    .rf_out_B  (i_rf_out_B_in_execute_stage  ),
+    .rf        (o_tb_regs )
 );
+
 
 //edge btw fetch and rf_read
     //rf_read stage
+logic i_valid_out_in_rf_read_stage;
+logic o_valid_out_in_rf_read_stage;
+logic o_ir_enable_in_rf_read_stage;
+logic [15:0] o_ir_in_rf_read_stage;
+
+logic o_reg_A_en_in_rf_read_stage;
+logic o_reg_B_en_in_rf_read_stage;
+
 stage_rf_read u_stage_rf_read(
-	.valid_in  (valid_in  ),
-    .mem_data  (mem_data  ),
-    .valid_out (valid_out ),
-    .ir_enable (ir_enable ),
-    .ir        (ir        ),
-    .rf_sel_A  (rf_sel_A  ),
-    .rf_sel_B  (rf_sel_B  )
+	.valid_in  (i_valid_out_in_rf_read_stage  ),
+    .mem_data  (i_pc_rddata  ),
+    .valid_out (o_valid_out_in_rf_read_stage ),
+    .ir_enable (o_ir_enable_in_rf_read_stage ),
+    .ir        (o_ir_in_rf_read_stage        ),
+    .rf_sel_A  (o_rf_sel_A_in_rf_read_stage  ),
+    .rf_sel_B  (o_rf_sel_B_in_rf_read_stage  ),
+    .reg_A_en  (o_reg_A_en_in_rf_read_stage),
+    .reg_B_en  (o_reg_B_en_in_rf_read_stage)
 );
 
 valid_bit u_valid_bit_fetch(
 	.clk       (clk       ),
-    .rst       (rst       ),
-    .enable    (enable    ),
-    .valid_in  (valid_in  ),
-    .valid_out (valid_out )
+    .rst       (reset       ),
+    .enable    (1'b1    ),//part3
+    .valid_in  (o_valid_out_in_fetch_stage  ),
+    .valid_out (i_valid_out_in_rf_read_stage )
 );
 
     //memory
 
 //edge btw rf_read and execute
+logic i_valid_out_in_execute_stage;
+logic o_valid_out_in_execute_stage;
+logic [15:0] i_ir_out_in_execute_stage;
+logic [15:0] o_alu_out_in_execute_stage;
+logic o_wire_z_in_execute_stage;
+logic o_wire_n_in_execute_stage;
+logic o_z_en_in_execute_stage;
+logic o_n_en_in_execute_stage;
+logic [15:0] o_ir_out_in_execute_stage;
+logic o_alu_result_en_in_execute_stage;
+logic o_ir_enable_in_execute_stage;
+logic [15:0] i_rf_reg_out_A_in_execute_stage;
+logic [15:0] i_rf_reg_out_B_in_execute_stage;
     //execute
 stage_execute u_stage_execute(
-	.valid_in          (valid_in          ),
-    .rf_out_A          (rf_out_A          ),
-    .rf_out_B          (rf_out_B          ),
-    .ir_in_execute     (ir_in_execute     ),
-    .z                 (z                 ),
-    .n                 (n                 ),
-    .valid_out         (valid_out         ),
-    .alu_out           (alu_out           ),
+	.valid_in          (i_valid_out_in_execute_stage          ),
+    .rf_out_A          (i_rf_reg_out_A_in_execute_stage          ),
+    .rf_out_B          (i_rf_reg_out_B_in_execute_stage          ),
+    .ir_in_execute     (i_ir_out_in_execute_stage     ),
+    .z                 (1'b1                 ),//part3
+    .n                 (1'b1              ),//part3
+    .valid_out         (o_valid_out_in_execute_stage         ),
+    .alu_out           (o_alu_out_in_execute_stage           ),
     .o_ldst_addr       (o_ldst_addr       ),
     .o_ldst_rd         (o_ldst_rd         ),
     .o_ldst_wr         (o_ldst_wr         ),
     .o_ldst_wrdata     (o_ldst_wrdata     ),
-    .wire_z            (wire_z            ),
-    .wire_n            (wire_n            ),
-    .z_en              (z_en              ),
-    .n_en              (n_en              ),
-    .ir_out_execute    (ir_out_execute    ),
-    .alu_result_en     (alu_result_en     ),
-    .ir_out_execute_en (ir_out_execute_en )
+    .wire_z            (o_wire_z_in_execute_stage            ),
+    .wire_n            (o_wire_n_in_execute_stage            ),
+    .z_en              (o_z_en_in_execute_stage              ),
+    .n_en              (o_n_en_in_execute_stage              ),
+    .ir_out_execute    (o_ir_out_in_execute_stage    ),
+    .alu_result_en     (o_alu_result_en_in_execute_stage     ),
+    .ir_out_execute_en (o_ir_enable_in_execute_stage )
 );
 
 valid_bit u_valid_bit_rf_read(
 	.clk       (clk       ),
-    .rst       (rst       ),
-    .enable    (enable    ),
-    .valid_in  (valid_in  ),
-    .valid_out (valid_out )
+    .rst       (reset       ),
+    .enable    (1'b1    ),
+    .valid_in  (o_valid_out_in_rf_read_stage  ),
+    .valid_out (i_valid_out_in_execute_stage )
 );
 
 ir u_ir_rf_read(
     .clk       (clk       ),
-    .rst       (rst       ),
-    .ir_enable (ir_enable ),
-    .ir_in     (ir_in     ),
-    .ir_out    (ir_out    )
+    .rst       (reset       ),
+    .ir_enable (o_ir_enable_in_rf_read_stage ),
+    .ir_in     (o_ir_in_rf_read_stage     ),
+    .ir_out    (i_ir_out_in_execute_stage    )
 );
 
-    //rf
+_16bit_reg u_rf_A(
+	.clk     (clk     ),
+    .rst     (reset     ),
+    .enable  (o_reg_A_en_in_rf_read_stage  ),
+    .reg_in  (i_rf_out_A_in_execute_stage  ),
+    .reg_out (i_rf_reg_out_A_in_execute_stage )
+);
+
+_16bit_reg u_rf_B(
+	.clk     (clk     ),
+    .rst     (reset     ),
+    .enable  (o_reg_B_en_in_rf_read_stage  ),
+    .reg_in  (i_rf_out_B_in_execute_stage  ),
+    .reg_out (i_rf_reg_out_B_in_execute_stage )
+);
+
 
 //edge btw execute and writeback
+logic i_valid_out_in_writeback_stage;
+logic i_z_in_writeback_stage;
+logic i_n_in_writeback_stage;
+logic [15:0] i_alu_reg_in_writeback_stage;
+logic [15:0] i_ir_out_in_writeback_stage;
+
     //writeback stage
 stage_writeback u_stage_writeback(
-	.valid       (valid       ),
-    .ir          (ir          ),
-    .alu_reg     (alu_reg     ),
-    .mem_data    (mem_data    ),
-    .z           (z           ),
-    .n           (n           ),
-    .rf_write_en (rf_write_en ),
-    .only_high   (only_high   ),
-    .rf_addr     (rf_addr     ),
-    .rf_data     (rf_data     ),
-    .pc_enable   (pc_enable   ),
-    .pc          (pc          )
+	.valid       (i_valid_out_in_writeback_stage       ),
+    .ir          (  i_ir_out_in_writeback_stage       ),
+    .alu_reg     (i_alu_reg_in_writeback_stage     ),
+    .mem_data    (i_ldst_rddata    ),
+    .z           (i_z_in_writeback_stage           ),
+    .n           (i_n_in_writeback_stage         ),
+    .rf_write_en (o_write_en_in_writeback_stage ),
+    .only_high   (o_only_high_in_writeback_stage   ),
+    .rf_addr     (o_rf_addr_in_writeback_stage     ),
+    .rf_data     ( o_rf_data_in_in_writeback_stage    ),
+    .pc_enable   (o_pc_enable_in_writeback_stage   ),
+    .pc          (o_pc_mux_out_in_writeback_stage          )
 );
 
 ir u_ir_execute(
     .clk       (clk       ),
-    .rst       (rst       ),
-    .ir_enable (ir_enable ),
-    .ir_in     (ir_in     ),
-    .ir_out    (ir_out    )
+    .rst       (reset       ),
+    .ir_enable (o_ir_enable_in_execute_stage ),
+    .ir_in     (o_ir_out_in_execute_stage     ),
+    .ir_out    ( i_ir_out_in_writeback_stage   )
 );
 
-alu_result_reg u_alu_result_reg(
+_16bit_reg u_alu_result_reg(
 	.clk     (clk     ),
-    .rst     (rst     ),
-    .enable  (enable  ),
-    .reg_in  (reg_in  ),
-    .reg_out (reg_out )
+    .rst     (reset     ),
+    .enable  (o_alu_result_en_in_execute_stage  ),
+    .reg_in  (o_alu_out_in_execute_stage  ),
+    .reg_out (i_alu_reg_in_writeback_stage )
 );
 
 
 flag u_flag_execute(
     .clk  (clk  ),
-    .rst  (rst  ),
-    .i_z  (i_z  ),
-    .i_n  (i_n  ),
-    .z_en (z_en ),
-    .n_en (n_en ),
-    .o_z  (o_z  ),
-    .o_n  (o_n  )
+    .rst  (reset  ),
+    .i_z  (o_wire_z_in_execute_stage  ),
+    .i_n  (o_wire_n_in_execute_stage  ),
+    .z_en (o_z_en_in_execute_stage ),
+    .n_en (o_n_en_in_execute_stage ),
+    .o_z  (i_z_in_writeback_stage  ),
+    .o_n  (i_n_in_writeback_stage  )
 );
 
 valid_bit u_valid_bit_execute(
 	.clk       (clk       ),
-    .rst       (rst       ),
-    .enable    (enable    ),
-    .valid_in  (valid_in  ),
-    .valid_out (valid_out )
+    .rst       (reset       ),
+    .enable    (1'b1    ),
+    .valid_in  (o_valid_out_in_execute_stage  ),
+    .valid_out (i_valid_out_in_writeback_stage )
 );
 
     //memory

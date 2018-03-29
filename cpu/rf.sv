@@ -35,12 +35,12 @@ generate
 endgenerate
 
 inside_rf_mux inside_A(
-	.regfile(regfile[0:7]),
+	.regfile(regfile),
 	.rf_addr(rf_addr_A),
 	.rf_out(rf_out_A)
 	);
 inside_rf_mux inside_B(
-	.regfile(regfile[0:7]),
+	.regfile(regfile),
 	.rf_addr(rf_addr_B),
 	.rf_out(rf_out_B)
 	);
