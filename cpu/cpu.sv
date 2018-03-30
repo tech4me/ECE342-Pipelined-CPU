@@ -32,8 +32,8 @@ logic [15:0] i_pc_out_in_fetch_stage;
 
 logic o_valid_out_in_fetch_stage;
 
-logic [15:0] i_rf_out_A_to_forward_mux;
-logic [15:0] i_rf_out_B_to_forward_mux;
+logic [15:0] o_reg_A;
+logic [15:0] o_reg_B;
 
 logic [15:0] i_rf_out_a_in_execute_stage;
 logic [15:0] i_rf_out_b_in_execute_stage;
@@ -83,10 +83,8 @@ pc u_pc_writeback(
 
 logic [2:0] o_rf_sel_A_in_rf_read_stage;
 logic [2:0] o_rf_sel_B_in_rf_read_stage;
-
-assign i_rf_out_A_to_forward_mux = detect_reg_in_rf_read_stage[0]? i_alu_reg_from_writeback_stage_in_rf_read_stage : i_rf_out_a_in_execute_stage;
-assign i_rf_out_B_to_forward_mux = detect_reg_in_rf_read_stage[1]? i_alu_reg_from_writeback_stage_in_rf_read_stage: i_rf_out_b_in_execute_stage;
-
+logic [15:0] i_rf_out_A_to_rf_read;
+logic [15:0] i_rf_out_B_to_rf_read;
 rf u_rf_rf_read_writeback(
     .clk       (clk       ),
     .rst       (reset       ),
@@ -96,8 +94,8 @@ rf u_rf_rf_read_writeback(
     .rf_addr_B (o_rf_sel_B_in_rf_read_stage ),
     .only_high (o_only_high_in_writeback_stage ),
     .write_en  (o_write_en_in_writeback_stage  ),
-    .rf_out_A  (i_rf_out_a_in_execute_stage  ),
-    .rf_out_B  (i_rf_out_b_in_execute_stage  ),
+    .rf_out_A  (i_rf_out_A_to_rf_read),
+    .rf_out_B  (i_rf_out_B_to_rf_read),
     .rf        (o_tb_regs )
 );
 
@@ -115,13 +113,17 @@ logic o_reg_B_en_in_rf_read_stage;
 stage_rf_read u_stage_rf_read(
 	.valid_in  (i_valid_out_in_rf_read_stage  ),
     .mem_data  (i_pc_rddata  ),
+    .rf_A (i_rf_out_A_to_rf_read),
+    .rf_B (i_rf_out_B_to_rf_read),
     .valid_out (o_valid_out_in_rf_read_stage ),
     .ir_enable (o_ir_enable_in_rf_read_stage ),
     .ir        (o_ir_in_rf_read_stage        ),
     .rf_sel_A  (o_rf_sel_A_in_rf_read_stage  ),
     .rf_sel_B  (o_rf_sel_B_in_rf_read_stage  ),
     .reg_A_en  (o_reg_A_en_in_rf_read_stage),
-    .reg_B_en  (o_reg_B_en_in_rf_read_stage)
+    .reg_B_en  (o_reg_B_en_in_rf_read_stage),
+    .reg_A (o_reg_A),
+    .reg_B (o_reg_B)
 );
 
 valid_bit u_valid_bit_fetch(
@@ -188,19 +190,19 @@ ir u_ir_rf_read(
     .ir_out    (i_ir_out_in_execute_stage    )
 );
 
-_16bit_reg u_rf_A(
+_16bit_reg u_op_A(
 	.clk     (clk     ),
     .rst     (reset     ),
     .enable  (o_reg_A_en_in_rf_read_stage  ),
-    .reg_in  (i_rf_out_A_to_forward_mux  ),
+    .reg_in  (o_reg_A  ),
     .reg_out (i_rf_reg_out_A_in_execute_stage )
 );
 
-_16bit_reg u_rf_B(
+_16bit_reg u_op_B(
 	.clk     (clk     ),
     .rst     (reset     ),
     .enable  (o_reg_B_en_in_rf_read_stage  ),
-    .reg_in  (i_rf_out_B_to_forward_mux  ),
+    .reg_in  (o_reg_B  ),
     .reg_out (i_rf_reg_out_B_in_execute_stage )
 );
 
