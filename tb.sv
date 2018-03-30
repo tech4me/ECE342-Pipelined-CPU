@@ -304,8 +304,8 @@ endtask
 initial begin
 	// Comment these out to run only certain tests.
 	do_test(0);
-	/*do_test(1);
-	do_test(2);
+	do_test(1);
+	/*do_test(2);
 	do_test(3);
 	do_test(4);
 	do_test(5);
@@ -314,3 +314,11 @@ initial begin
 end
 
 endmodule
+/*
+cd E:ece342/lab7_draft/lab7_kit/
+vlog *.sv cpu/*.sv
+vsim -novopt tb
+run -all
+restart -f
+run -all
+*/

@@ -42,14 +42,14 @@ always_comb begin
 end
 
 //below is for rf_read_stage
-sub_detect(
+sub_detect u_rf_read(
     .detect_to_be_writeback(detect_to_be_writeback),
     .i_ir_out_in_to_be_corrected_stage(o_mem_data_in_rf_read_stage),
     .i_ir_out_in_writeback_stage(i_ir_out_in_writeback_stage),
     .detect_signal(detect_reg_in_rf_read_stage)
 );
 //belwo is for execute stage
-sub_detect(
+sub_detect u_execute(
     .detect_to_be_writeback(detect_to_be_writeback),
     .i_ir_out_in_to_be_corrected_stage(i_ir_out_in_execute_stage),
     .i_ir_out_in_writeback_stage(i_ir_out_in_writeback_stage),

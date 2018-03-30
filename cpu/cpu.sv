@@ -39,6 +39,27 @@ logic [15:0] i_rf_out_b_in_execute_stage;
 
 logic o_pc_fetch_enable_in_fetch_stage;
 
+//forwarding comb logic
+logic [15:0] i_ir_out_in_writeback_stage;
+logic [15:0] i_ir_out_in_execute_stage;
+logic [15:0] i_alu_reg_in_writeback_stage;
+
+logic [1:0]detect_reg_in_rf_read_stage;
+logic [1:0]detect_reg_in_execute_stage;
+logic [15:0] i_alu_reg_from_writeback_stage_in_execute_stage;
+logic [15:0] i_alu_reg_from_writeback_stage_in_rf_read_stage;
+seq_detect u_seq_detect(
+	.o_mem_data_in_rf_read_stage                     (i_pc_rddata                     ),
+    .i_ir_out_in_execute_stage                       (i_ir_out_in_execute_stage                       ),
+    .i_ir_out_in_writeback_stage                     (i_ir_out_in_writeback_stage                     ),
+    .i_alu_reg_in_writeback_stage                    (i_alu_reg_in_writeback_stage                    ),
+    .detect_reg_in_rf_read_stage                     (detect_reg_in_rf_read_stage                     ),
+    .detect_reg_in_execute_stage                     (detect_reg_in_execute_stage                     ),
+    .i_alu_reg_from_writeback_stage_in_execute_stage (i_alu_reg_from_writeback_stage_in_execute_stage ),
+    .i_alu_reg_from_writeback_stage_in_rf_read_stage (i_alu_reg_from_writeback_stage_in_rf_read_stage )
+);
+
+
     //fetch stage
 stage_fetch u_stage_fetch(
 	.valid_in    (1'b1    ),
@@ -62,8 +83,8 @@ pc u_pc_writeback(
 logic [2:0] o_rf_sel_A_in_rf_read_stage;
 logic [2:0] o_rf_sel_B_in_rf_read_stage;
 
-assign i_rf_out_A_to_forward_mux = ? : i_rf_out_a_in_execute_stage;
-assign i_rf_out_B_to_forward_mux = ? : i_rf_out_b_in_execute_stage;
+assign i_rf_out_A_to_forward_mux = detect_reg_in_rf_read_stage[0]? i_alu_reg_from_writeback_stage_in_rf_read_stage : i_rf_out_a_in_execute_stage;
+assign i_rf_out_B_to_forward_mux = detect_reg_in_rf_read_stage[1]? i_alu_reg_from_writeback_stage_in_rf_read_stage: i_rf_out_b_in_execute_stage;
 
 rf u_rf_rf_read_writeback(
     .clk       (clk       ),
@@ -74,8 +95,8 @@ rf u_rf_rf_read_writeback(
     .rf_addr_B (o_rf_sel_B_in_rf_read_stage ),
     .only_high (o_only_high_in_writeback_stage ),
     .write_en  (o_write_en_in_writeback_stage  ),
-    .rf_out_A  (i_rf_out_A_to_forward_mux  ),
-    .rf_out_B  (i_rf_out_B_to_forward_mux  ),
+    .rf_out_A  (i_rf_out_a_in_execute_stage  ),
+    .rf_out_B  (i_rf_out_b_in_execute_stage  ),
     .rf        (o_tb_regs )
 );
 
@@ -115,7 +136,6 @@ valid_bit u_valid_bit_fetch(
 //edge btw rf_read and execute
 logic i_valid_out_in_execute_stage;
 logic o_valid_out_in_execute_stage;
-logic [15:0] i_ir_out_in_execute_stage;
 logic [15:0] o_alu_out_in_execute_stage;
 logic o_wire_z_in_execute_stage;
 logic o_wire_n_in_execute_stage;
@@ -132,6 +152,8 @@ stage_execute u_stage_execute(
     .rf_out_A          (i_rf_reg_out_A_in_execute_stage          ),
     .rf_out_B          (i_rf_reg_out_B_in_execute_stage          ),
     .ir_in_execute     (i_ir_out_in_execute_stage     ),
+    .rf_forward_data(i_alu_reg_from_writeback_stage_in_execute_stage),
+    .rf_forward_sel(detect_reg_in_execute_stage),
     .z                 (1'b1                 ),//part3
     .n                 (1'b1              ),//part3
     .valid_out         (o_valid_out_in_execute_stage         ),
@@ -169,7 +191,7 @@ _16bit_reg u_rf_A(
 	.clk     (clk     ),
     .rst     (reset     ),
     .enable  (o_reg_A_en_in_rf_read_stage  ),
-    .reg_in  (i_rf_out_A_in_execute_stage  ),
+    .reg_in  (i_rf_out_A_to_forward_mux  ),
     .reg_out (i_rf_reg_out_A_in_execute_stage )
 );
 
@@ -177,7 +199,7 @@ _16bit_reg u_rf_B(
 	.clk     (clk     ),
     .rst     (reset     ),
     .enable  (o_reg_B_en_in_rf_read_stage  ),
-    .reg_in  (i_rf_out_B_in_execute_stage  ),
+    .reg_in  (i_rf_out_B_to_forward_mux  ),
     .reg_out (i_rf_reg_out_B_in_execute_stage )
 );
 
@@ -186,8 +208,7 @@ _16bit_reg u_rf_B(
 logic i_valid_out_in_writeback_stage;
 logic i_z_in_writeback_stage;
 logic i_n_in_writeback_stage;
-logic [15:0] i_alu_reg_in_writeback_stage;
-logic [15:0] i_ir_out_in_writeback_stage;
+
 
     //writeback stage
 stage_writeback u_stage_writeback(

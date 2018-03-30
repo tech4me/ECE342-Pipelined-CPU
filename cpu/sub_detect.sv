@@ -37,7 +37,7 @@ always_comb begin
                         else
                             detect_signal[0] = 0;
                      end
-            OP_MVHI: detect_signal[0] = 0;
+            OP_MVHI: detect_signal[0] = 1;
             /*OP_J_X: 
             OP_JN_X:   
             OP_JZ_X:  
