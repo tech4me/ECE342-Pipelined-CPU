@@ -1,15 +1,18 @@
+`include "op.svh"
 module stage_rf_read (
     input valid_in,
     input [15:0] mem_data,
     input [15:0] rf_A,
     input [15:0] rf_B,
+    input [15:0] i_alu_reg_from_writeback_stage_in_rf_read_stage,
+    input [1:0] detect_reg_in_rf_read_stage,
     output valid_out,
     output ir_enable,
     output [15:0] ir,
     output [2:0]rf_sel_A,
     output [2:0]rf_sel_B,
     output reg_A_en,
-    output reg_B_en
+    output reg_B_en,
     output [15:0] reg_A,
     output [15:0] reg_B
 );
@@ -66,10 +69,10 @@ end
 
 always_comb begin
     case(mem_data[3:0])
-        OP_MV_X:  alu_mux_b_sel=ir_in_execute[4] ? 0 : 1;
-        OP_ADD_X: alu_mux_b_sel=ir_in_execute[4] ? 0 : 1;
-        OP_SUB_X: alu_mux_b_sel=ir_in_execute[4] ? 0 : 1;
-        OP_CMP_X: alu_mux_b_sel=ir_in_execute[4] ? 0 : 1;
+        OP_MV_X:  alu_mux_b_sel=mem_data[4] ? 0 : 1;
+        OP_ADD_X: alu_mux_b_sel=mem_data[4] ? 0 : 1;
+        OP_SUB_X: alu_mux_b_sel=mem_data[4] ? 0 : 1;
+        OP_CMP_X: alu_mux_b_sel=mem_data[4] ? 0 : 1;
         OP_MVHI:  alu_mux_b_sel=3;
         OP_LD: alu_mux_b_sel=1;
         OP_ST: alu_mux_b_sel=1;
@@ -80,12 +83,15 @@ always_comb begin
     endcase
 end
 
-
+logic [15:0]rf_A_forward_out;
+logic [15:0]rf_B_forward_out;
+assign rf_A_forward_out = detect_reg_in_rf_read_stage[0]?  i_alu_reg_from_writeback_stage_in_rf_read_stage: rf_A;
+assign rf_B_forward_out = detect_reg_in_rf_read_stage[1]?  i_alu_reg_from_writeback_stage_in_rf_read_stage: rf_B;
 alu_mux u_alu_mux(
-	.rf_out_A      (rf_A),
+	.rf_out_A      (rf_A_forward_out),
 	.ir_out_imm8   (mem_data[15:8]  ),
     .ir_out_imm11  (mem_data[15:5]  ),
-	.rf_out_B      (rf_B),
+	.rf_out_B      (rf_B_forward_out),
 	.pc_out        (16'd127       ),//not implemented
 	.alu_mux_a_sel (alu_mux_a_sel ),
 	.alu_mux_b_sel (alu_mux_b_sel ),

@@ -27,7 +27,7 @@ case(i_mem_rddata[3:0])
     //default:
 endcase
 */
-assign i_alu_reg_from_writeback_stage_in_execute_stage = i_alu_reg_in_writeback_stage;
+assign i_alu_reg_from_writeback_stage_in_execute_stage = (i_ir_out_in_execute_stage[3:0]==OP_MVHI)? {8'd0, i_alu_reg_in_writeback_stage[7:0]}: i_alu_reg_in_writeback_stage;
 assign i_alu_reg_from_writeback_stage_in_rf_read_stage = i_alu_reg_in_writeback_stage;
 
 logic detect_to_be_writeback;

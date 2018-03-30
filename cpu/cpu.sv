@@ -35,8 +35,8 @@ logic o_valid_out_in_fetch_stage;
 logic [15:0] o_reg_A;
 logic [15:0] o_reg_B;
 
-logic [15:0] i_rf_out_a_in_execute_stage;
-logic [15:0] i_rf_out_b_in_execute_stage;
+//logic [15:0] i_rf_out_a_in_execute_stage;
+//logic [15:0] i_rf_out_b_in_execute_stage;
 
 logic o_pc_fetch_enable_in_fetch_stage;
 
@@ -115,6 +115,8 @@ stage_rf_read u_stage_rf_read(
     .mem_data  (i_pc_rddata  ),
     .rf_A (i_rf_out_A_to_rf_read),
     .rf_B (i_rf_out_B_to_rf_read),
+    .i_alu_reg_from_writeback_stage_in_rf_read_stage(i_alu_reg_from_writeback_stage_in_rf_read_stage),
+    .detect_reg_in_rf_read_stage(detect_reg_in_rf_read_stage),
     .valid_out (o_valid_out_in_rf_read_stage ),
     .ir_enable (o_ir_enable_in_rf_read_stage ),
     .ir        (o_ir_in_rf_read_stage        ),
@@ -152,13 +154,11 @@ logic [15:0] i_rf_reg_out_B_in_execute_stage;
     //execute
 stage_execute u_stage_execute(
 	.valid_in          (i_valid_out_in_execute_stage          ),
-    .rf_out_A          (i_rf_reg_out_A_in_execute_stage          ),
-    .rf_out_B          (i_rf_reg_out_B_in_execute_stage          ),
+    .op_out_A          (i_rf_reg_out_A_in_execute_stage          ),
+    .op_out_B          (i_rf_reg_out_B_in_execute_stage          ),
     .ir_in_execute     (i_ir_out_in_execute_stage     ),
     .rf_forward_data(i_alu_reg_from_writeback_stage_in_execute_stage),
     .rf_forward_sel(detect_reg_in_execute_stage),
-    .z                 (1'b1                 ),//part3
-    .n                 (1'b1              ),//part3
     .valid_out         (o_valid_out_in_execute_stage         ),
     .alu_out           (o_alu_out_in_execute_stage           ),
     .o_ldst_addr       (o_ldst_addr       ),
