@@ -49,11 +49,17 @@ logic [1:0]detect_reg_in_rf_read_stage;
 logic [1:0]detect_reg_in_execute_stage;
 logic [15:0] i_alu_reg_from_writeback_stage_in_execute_stage;
 logic [15:0] i_alu_reg_from_writeback_stage_in_rf_read_stage;
+logic [15:0] o_alu_out_in_execute_stage;
+logic [15:0] o_ir_out_in_execute_stage;
 seq_detect u_seq_detect(
+    .clk(clk),
+    .rst(reset),
 	.o_mem_data_in_rf_read_stage                     (i_pc_rddata                     ),
-    .i_ir_out_in_execute_stage                       (i_ir_out_in_execute_stage                       ),
+    .i_ir_out_in_execute_stage                       (i_pc_rddata/*i_ir_out_in_execute_stage*/                       ),
+    .o_ir_out_in_execute_stage                       (o_ir_out_in_execute_stage),//new
     .i_ir_out_in_writeback_stage                     (i_ir_out_in_writeback_stage                     ),
     .i_alu_reg_in_writeback_stage                    (i_alu_reg_in_writeback_stage                    ),
+    .o_alu_out_in_execute_stage                      (o_alu_out_in_execute_stage),
     .detect_reg_in_rf_read_stage                     (detect_reg_in_rf_read_stage                     ),
     .detect_reg_in_execute_stage                     (detect_reg_in_execute_stage                     ),
     .i_alu_reg_from_writeback_stage_in_execute_stage (i_alu_reg_from_writeback_stage_in_execute_stage ),
@@ -141,12 +147,12 @@ valid_bit u_valid_bit_fetch(
 //edge btw rf_read and execute
 logic i_valid_out_in_execute_stage;
 logic o_valid_out_in_execute_stage;
-logic [15:0] o_alu_out_in_execute_stage;
+
 logic o_wire_z_in_execute_stage;
 logic o_wire_n_in_execute_stage;
 logic o_z_en_in_execute_stage;
 logic o_n_en_in_execute_stage;
-logic [15:0] o_ir_out_in_execute_stage;
+
 logic o_alu_result_en_in_execute_stage;
 logic o_ir_enable_in_execute_stage;
 logic [15:0] i_rf_reg_out_A_in_execute_stage;

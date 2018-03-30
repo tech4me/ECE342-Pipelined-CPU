@@ -1,12 +1,16 @@
 `include "op.svh"
 module seq_detect(
+    input clk,
+    input rst,
     input [15:0] o_mem_data_in_rf_read_stage,
     input [15:0] i_ir_out_in_execute_stage,
+    input [15:0] o_ir_out_in_execute_stage,
     input [15:0] i_ir_out_in_writeback_stage,
     input [15:0] i_alu_reg_in_writeback_stage,
+    input [15:0] o_alu_out_in_execute_stage,
     output logic [1:0]detect_reg_in_rf_read_stage,
     output logic [1:0]detect_reg_in_execute_stage,
-    output [15:0] i_alu_reg_from_writeback_stage_in_execute_stage,
+    output logic [15:0] i_alu_reg_from_writeback_stage_in_execute_stage,
     output [15:0] i_alu_reg_from_writeback_stage_in_rf_read_stage
 );
 
@@ -27,8 +31,33 @@ case(i_mem_rddata[3:0])
     //default:
 endcase
 */
-assign i_alu_reg_from_writeback_stage_in_execute_stage = (i_ir_out_in_execute_stage[3:0]==OP_MVHI)? {8'd0, i_alu_reg_in_writeback_stage[7:0]}: i_alu_reg_in_writeback_stage;
+//assign i_alu_reg_from_writeback_stage_in_execute_stage = (i_ir_out_in_execute_stage[3:0]==OP_MVHI)? {8'd0, i_alu_reg_in_writeback_stage[7:0]}: i_alu_reg_in_writeback_stage;
+logic [1:0] sub_detect_reg_in_execute_stage;
+always_ff @(posedge clk) begin
+    if(rst) begin
+        i_alu_reg_from_writeback_stage_in_execute_stage <=0;
+        detect_reg_in_execute_stage <= 0;     
+    end
+    else begin
+        i_alu_reg_from_writeback_stage_in_execute_stage = (i_ir_out_in_execute_stage[3:0]==OP_MVHI)? {8'd0, o_alu_out_in_execute_stage[7:0]}: o_alu_out_in_execute_stage;
+        detect_reg_in_execute_stage<=sub_detect_reg_in_execute_stage;
+    end
+end
+
 assign i_alu_reg_from_writeback_stage_in_rf_read_stage = i_alu_reg_in_writeback_stage;
+
+logic detect_to_be_writeback_for_execute_stage;
+always_comb begin
+    case(o_ir_out_in_execute_stage[3:0])
+        OP_MV_X:  detect_to_be_writeback_for_execute_stage = 1;
+        OP_ADD_X: detect_to_be_writeback_for_execute_stage = 1;
+        OP_SUB_X: detect_to_be_writeback_for_execute_stage = 1;
+        OP_LD:    detect_to_be_writeback_for_execute_stage = 1;
+        OP_MVHI:  detect_to_be_writeback_for_execute_stage = 1;
+        default: detect_to_be_writeback_for_execute_stage = 0;
+    endcase
+end
+
 
 logic detect_to_be_writeback;
 always_comb begin
@@ -51,10 +80,10 @@ sub_detect u_rf_read(
 );
 //belwo is for execute stage
 sub_detect u_execute(
-    .detect_to_be_writeback(detect_to_be_writeback),
+    .detect_to_be_writeback(detect_to_be_writeback_for_execute_stage),
     .i_ir_out_in_to_be_corrected_stage(i_ir_out_in_execute_stage),
-    .i_ir_out_in_writeback_stage(i_ir_out_in_writeback_stage),
-    .detect_signal(detect_reg_in_execute_stage)
+    .i_ir_out_in_writeback_stage(o_ir_out_in_execute_stage),
+    .detect_signal(sub_detect_reg_in_execute_stage)
 );
 
 endmodule
