@@ -1,3 +1,4 @@
+`include "op.svh"
 module seq_detect(
     input [15:0] o_mem_data_in_rf_read_stage,
     input [15:0] i_ir_out_in_execute_stage,
@@ -9,7 +10,7 @@ module seq_detect(
     output [15:0] i_alu_reg_from_writeback_stage_in_rf_read_stage
 );
 
-`include "op.vh"
+//`include "op.sv"
 /*
 case(i_mem_rddata[3:0])
     OP_MV_X:  nextstate = S_MV_X;

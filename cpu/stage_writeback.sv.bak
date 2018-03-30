@@ -1,4 +1,3 @@
-`include "op.svh"
 module stage_writeback (
     input valid,
     input [15:0] ir,
@@ -13,6 +12,7 @@ module stage_writeback (
     output logic pc_enable,
     output [15:0] pc
 );
+`include "op.vh"
 
 logic rf_mux_sel;
 logic [2:0] pc_mux_sel;

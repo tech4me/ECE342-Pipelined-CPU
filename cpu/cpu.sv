@@ -15,6 +15,7 @@ module cpu
         
         output [7:0][15:0] o_tb_regs
     );
+
 //edge btw writeback and fetch
 logic [15:0] o_pc_mux_out_in_writeback_stage;
 logic o_pc_enable_in_writeback_stage;

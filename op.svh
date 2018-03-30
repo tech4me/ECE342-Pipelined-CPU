@@ -1,6 +1,6 @@
-`ifndef _op_vh_
-`define _op_vh_
-localparam
+`ifndef _op_svh_
+`define _op_svh_
+parameter
 OP_MV_X  = 4'b0000,
 OP_ADD_X = 4'b0001,
 OP_SUB_X = 4'b0010,
