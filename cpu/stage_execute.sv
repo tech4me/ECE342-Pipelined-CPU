@@ -1,14 +1,11 @@
 `include "op.svh"
 module stage_execute(
     input valid_in,
-	input [15:0]rf_out_A,
-	input [15:0]rf_out_B,
+	input [15:0]op_out_A,
+	input [15:0]op_out_B,
     input [15:0]ir_in_execute,
     input [15:0]rf_forward_data,
     input [1:0]rf_forward_sel,
-
-    input z,//part3
-    input n,//part3
 
     output valid_out,
     output [15:0] alu_out,
@@ -46,6 +43,104 @@ case(i_mem_rddata[3:0])
     //default:
 endcase
 */
+logic [15:0]rf_A_forward_out;
+logic [15:0]rf_B_forward_out;
+logic alu_sub;
+
+assign alu_result_en = valid_in;
+assign ir_out_execute_en = valid_in;
+assign ir_out_execute = ir_in_execute;
+assign valid_out = valid_in;
+assign alu_sub = ( (ir_in_execute[3:0] == OP_SUB_X) || (ir_in_execute[3:0]==OP_CMP_X) )? 1:0;
+assign rf_A_forward_out = rf_forward_sel[0]? rf_forward_data : op_out_A;
+assign rf_B_forward_out = rf_forward_sel[1]? rf_forward_data : op_out_B;
+alu u_alu(
+	.in_a    (rf_A_forward_out ),
+	.in_b    (rf_B_forward_out ),
+	.sub     (alu_sub       ),
+	.alu_out (alu_out       ),
+	.z       (wire_z        ),
+	.n       (wire_n        )
+);
+
+assign o_ldst_wrdata = rf_A_forward_out;
+
+always_comb begin
+    case(ir_in_execute[3:0])
+        OP_LD: begin 
+                o_ldst_rd = valid_in;
+			    o_ldst_wr=0;
+                o_ldst_addr [15:1] = alu_out[15:1];
+                o_ldst_addr[0] = 0;
+               end
+        OP_ST: begin
+                o_ldst_wr = valid_in;
+			    o_ldst_rd=0;
+                o_ldst_addr [15:1] = alu_out[15:1];
+                o_ldst_addr[0] = 0;
+               end
+        default: begin
+                o_ldst_rd=0;
+                o_ldst_wr=0;
+                o_ldst_addr = 0;
+            end
+    endcase
+end
+
+always_comb begin
+    case(ir_in_execute[3:0])
+        OP_ADD_X: begin 
+                    z_en=1;
+                    n_en=1;
+                  end
+        OP_SUB_X: begin 
+                    z_en=1;
+                    n_en=1;
+                  end
+        OP_CMP_X: begin 
+                    z_en=1;
+                    n_en=1;
+                  end
+        default:  begin 
+                    z_en=0;
+                    n_en=0;
+                  end
+    endcase
+end
+
+endmodule
+
+/*
+`include "op.svh"
+module stage_execute(
+    input valid_in,
+	input [15:0]rf_out_A,
+	input [15:0]rf_out_B,
+    input [15:0]ir_in_execute,
+    input [15:0]rf_forward_data,
+    input [1:0]rf_forward_sel,
+
+    input z,//part3
+    input n,//part3
+
+    output valid_out,
+    output [15:0] alu_out,
+
+	output logic [15:0] o_ldst_addr,
+	output logic o_ldst_rd,
+	output logic o_ldst_wr,
+	output [15:0] o_ldst_wrdata,
+
+    output wire_z,
+    output wire_n,
+	output logic z_en,
+	output logic n_en,    
+
+    output [15:0]ir_out_execute,
+
+    output alu_result_en,
+    output ir_out_execute_en
+);
 logic [15:0] rf_A_forward_out;
 logic [15:0] rf_B_forward_out;
 logic [1:0] alu_mux_a_sel;
@@ -201,3 +296,5 @@ end
 
 
 endmodule
+
+*/
