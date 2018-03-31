@@ -51,6 +51,10 @@ logic [15:0] i_alu_reg_from_writeback_stage_in_execute_stage;
 logic [15:0] i_alu_reg_from_writeback_stage_in_rf_read_stage;
 logic [15:0] o_alu_out_in_execute_stage;
 logic [15:0] o_ir_out_in_execute_stage;
+
+//for LD and ST in rf_read stage, be mux sel before entering mem
+logic [1:0] detect_reg_in_rf_read_stage_ld_st;
+logic [15:0] i_alu_reg_from_writeback_stage_in_rf_read_stage_ld_st;
 seq_detect u_seq_detect(
     .clk(clk),
     .rst(reset),
@@ -58,19 +62,26 @@ seq_detect u_seq_detect(
     .i_ir_out_in_execute_stage                       (i_pc_rddata/*i_ir_out_in_execute_stage*/                       ),
     .o_ir_out_in_execute_stage                       (o_ir_out_in_execute_stage),//new
     .i_ir_out_in_writeback_stage                     (i_ir_out_in_writeback_stage                     ),
-    .i_alu_reg_in_writeback_stage                    (i_alu_reg_in_writeback_stage                    ),
+    .i_alu_reg_in_writeback_stage                    (o_rf_data_in_in_writeback_stage/*i_alu_reg_in_writeback_stage */),
     .o_alu_out_in_execute_stage                      (o_alu_out_in_execute_stage),
+    .real_i_ir_out_in_execute_stage                  (i_ir_out_in_execute_stage),
     .detect_reg_in_rf_read_stage                     (detect_reg_in_rf_read_stage                     ),
     .detect_reg_in_execute_stage                     (detect_reg_in_execute_stage                     ),
     .i_alu_reg_from_writeback_stage_in_execute_stage (i_alu_reg_from_writeback_stage_in_execute_stage ),
-    .i_alu_reg_from_writeback_stage_in_rf_read_stage (i_alu_reg_from_writeback_stage_in_rf_read_stage )
+    .i_alu_reg_from_writeback_stage_in_rf_read_stage (i_alu_reg_from_writeback_stage_in_rf_read_stage ),
+    .detect_reg_in_rf_read_stage_ld_st               (detect_reg_in_rf_read_stage_ld_st               ),
+    .i_alu_reg_from_writeback_stage_in_rf_read_stage_ld_st(i_alu_reg_from_writeback_stage_in_rf_read_stage_ld_st)
 );
 
+    //for branch
+logic [15:0] pc_to_be_jumped;
+logic branch_sig;
 
     //fetch stage
 stage_fetch u_stage_fetch(
 	.valid_in    (1'b1    ),
     .pc_out      (i_pc_out_in_fetch_stage),
+    .branch_sig  (branch_sig),
     .o_pc_addr   (o_pc_addr   ),
     .o_pc_rd     (o_pc_rd     ),
     .valid_out   (o_valid_out_in_fetch_stage   ),
@@ -81,9 +92,11 @@ stage_fetch u_stage_fetch(
 pc u_pc_writeback(
     .clk           (clk           ),
     .rst           (reset           ),
-    .pc_mux_out_in (o_pc_mux_out_in_writeback_stage ),
-    .inc           (o_pc_inc_in_fetch_stage           ),
-    .enable        (o_pc_enable_in_writeback_stage | o_pc_fetch_enable_in_fetch_stage       ),
+    .pc_to_be_jumped(pc_to_be_jumped),
+    .branch_sig     (branch_sig),
+    //.pc_mux_out_in (o_pc_mux_out_in_writeback_stage ),
+    //.inc           (o_pc_inc_in_fetch_stage           ),
+    .enable        (/*o_pc_enable_in_writeback_stage |*/ o_pc_fetch_enable_in_fetch_stage       ),
     .pc_out        (i_pc_out_in_fetch_stage        )
 );
 
@@ -116,6 +129,12 @@ logic [15:0] o_ir_in_rf_read_stage;
 logic o_reg_A_en_in_rf_read_stage;
 logic o_reg_B_en_in_rf_read_stage;
 
+
+logic o_wire_z_in_execute_stage;
+logic o_wire_n_in_execute_stage;
+logic i_z_in_writeback_stage;
+logic i_n_in_writeback_stage;
+
 stage_rf_read u_stage_rf_read(
 	.valid_in  (i_valid_out_in_rf_read_stage  ),
     .mem_data  (i_pc_rddata  ),
@@ -123,6 +142,26 @@ stage_rf_read u_stage_rf_read(
     .rf_B (i_rf_out_B_to_rf_read),
     .i_alu_reg_from_writeback_stage_in_rf_read_stage(i_alu_reg_from_writeback_stage_in_rf_read_stage),
     .detect_reg_in_rf_read_stage(detect_reg_in_rf_read_stage),
+
+    //for branch
+    .forwarding_z (o_wire_z_in_execute_stage),
+    .forwarding_n (o_wire_n_in_execute_stage),
+    .z (i_z_in_writeback_stage),
+    .n (i_n_in_writeback_stage),
+    .i_ir_out_in_execute_stage (i_ir_out_in_execute_stage),
+    .pc_in_plus_2 (i_pc_out_in_fetch_stage),
+    .pc_to_be_jumped (pc_to_be_jumped),
+    .branch_sig (branch_sig),
+
+    //for ld and st in rf read stage
+    .detect_reg_in_rf_read_stage_ld_st(detect_reg_in_rf_read_stage_ld_st),
+    .i_alu_reg_from_writeback_stage_in_rf_read_stage_ld_st(i_alu_reg_from_writeback_stage_in_rf_read_stage_ld_st),
+    .o_ldst_addr(o_ldst_addr),
+	.o_ldst_rd(o_ldst_rd),
+	.o_ldst_wr(o_ldst_wr),
+    .o_ldst_wrdata(o_ldst_wrdata),
+
+
     .valid_out (o_valid_out_in_rf_read_stage ),
     .ir_enable (o_ir_enable_in_rf_read_stage ),
     .ir        (o_ir_in_rf_read_stage        ),
@@ -148,8 +187,7 @@ valid_bit u_valid_bit_fetch(
 logic i_valid_out_in_execute_stage;
 logic o_valid_out_in_execute_stage;
 
-logic o_wire_z_in_execute_stage;
-logic o_wire_n_in_execute_stage;
+
 logic o_z_en_in_execute_stage;
 logic o_n_en_in_execute_stage;
 
@@ -157,6 +195,10 @@ logic o_alu_result_en_in_execute_stage;
 logic o_ir_enable_in_execute_stage;
 logic [15:0] i_rf_reg_out_A_in_execute_stage;
 logic [15:0] i_rf_reg_out_B_in_execute_stage;
+
+logic [15:0] o_ldst_mem_data_reg_in_execute_stage;
+logic [15:0] i_ldst_mem_data_reg_in_writeback_stage;
+
     //execute
 stage_execute u_stage_execute(
 	.valid_in          (i_valid_out_in_execute_stage          ),
@@ -167,10 +209,8 @@ stage_execute u_stage_execute(
     .rf_forward_sel(detect_reg_in_execute_stage),
     .valid_out         (o_valid_out_in_execute_stage         ),
     .alu_out           (o_alu_out_in_execute_stage           ),
-    .o_ldst_addr       (o_ldst_addr       ),
-    .o_ldst_rd         (o_ldst_rd         ),
-    .o_ldst_wr         (o_ldst_wr         ),
-    .o_ldst_wrdata     (o_ldst_wrdata     ),
+    .mem_rddata (i_ldst_rddata),
+    .mem_reg_datain (o_ldst_mem_data_reg_in_execute_stage),
     .wire_z            (o_wire_z_in_execute_stage            ),
     .wire_n            (o_wire_n_in_execute_stage            ),
     .z_en              (o_z_en_in_execute_stage              ),
@@ -215,8 +255,7 @@ _16bit_reg u_op_B(
 
 //edge btw execute and writeback
 logic i_valid_out_in_writeback_stage;
-logic i_z_in_writeback_stage;
-logic i_n_in_writeback_stage;
+
 
 
     //writeback stage
@@ -224,7 +263,7 @@ stage_writeback u_stage_writeback(
 	.valid       (i_valid_out_in_writeback_stage       ),
     .ir          (  i_ir_out_in_writeback_stage       ),
     .alu_reg     (i_alu_reg_in_writeback_stage     ),
-    .mem_data    (i_ldst_rddata    ),
+    .mem_data    (i_ldst_mem_data_reg_in_writeback_stage    ),//has been corrected
     .z           (i_z_in_writeback_stage           ),
     .n           (i_n_in_writeback_stage         ),
     .rf_write_en (o_write_en_in_writeback_stage ),
@@ -251,6 +290,13 @@ _16bit_reg u_alu_result_reg(
     .reg_out (i_alu_reg_in_writeback_stage )
 );
 
+_16bit_reg u_mem_reg(
+	.clk     (clk     ),
+    .rst     (reset     ),
+    .enable  (o_valid_out_in_execute_stage  ),// to be corrected in execute stage module
+    .reg_in  (o_ldst_mem_data_reg_in_execute_stage  ),
+    .reg_out (i_ldst_mem_data_reg_in_writeback_stage )
+);
 
 flag u_flag_execute(
     .clk  (clk  ),

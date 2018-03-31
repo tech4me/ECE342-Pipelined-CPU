@@ -10,10 +10,12 @@ module stage_execute(
     output valid_out,
     output [15:0] alu_out,
 
-	output logic [15:0] o_ldst_addr,
+	/*output logic [15:0] o_ldst_addr,
 	output logic o_ldst_rd,
 	output logic o_ldst_wr,
-	output [15:0] o_ldst_wrdata,
+    output [15:0] o_ldst_wrdata,*/
+    input [15:0] mem_rddata,
+    output [15:0] mem_reg_datain,
 
     output wire_z,
     output wire_n,
@@ -54,15 +56,18 @@ assign valid_out = valid_in;
 assign alu_sub = ( (ir_in_execute[3:0] == OP_SUB_X) || (ir_in_execute[3:0]==OP_CMP_X) )? 1:0;
 assign rf_A_forward_out = rf_forward_sel[0]? rf_forward_data : op_out_A;
 assign rf_B_forward_out = rf_forward_sel[1]? rf_forward_data : op_out_B;
+logic [15:0] fake_alu_out;// except for ld and st
 alu u_alu(
 	.in_a    (rf_A_forward_out ),
 	.in_b    (rf_B_forward_out ),
 	.sub     (alu_sub       ),
-	.alu_out (alu_out       ),
+	.alu_out (fake_alu_out       ),
 	.z       (wire_z        ),
 	.n       (wire_n        )
 );
 
+assign alu_out = (ir_in_execute[3:0] == OP_LD)? mem_rddata : fake_alu_out;
+/*
 assign o_ldst_wrdata = rf_A_forward_out;
 
 always_comb begin
@@ -86,6 +91,8 @@ always_comb begin
             end
     endcase
 end
+*/
+assign mem_reg_datain = mem_rddata;
 
 always_comb begin
     case(ir_in_execute[3:0])

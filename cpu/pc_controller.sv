@@ -8,7 +8,6 @@ module pc_controller(
     input [15:0] i_ir_out_in_execute_stage,
     input [15:0] forwarding_reg_A,
     input [15:0] pc_in_plus_2,
-    output [15:0] pc_out_for_r7, 
     output logic [15:0] pc_to_be_jumped,
     output logic branch_sig
 );
@@ -44,7 +43,6 @@ flag_forwarding i_flag_forwarding (
     .real_n                   (real_n                   )
 );
 
-assign pc_out_for_r7 = pc_in_plus_2;
 always_comb begin
     case(mem_data[3:0])
         OP_J_X:begin
