@@ -1,1 +1,1 @@
-qsta_utility::generate_top_failures_per_clock "Top Failing Paths" 4000 -multi_corner
+qsta_utility::generate_top_failures_per_clock "Top Failing Paths" 200 -multi_corner

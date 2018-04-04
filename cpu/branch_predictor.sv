@@ -16,7 +16,9 @@ module branch_predictor(
 logic [7:0][33:0] btb;
 
 logic [15:0] current_pc_reg;
-logic [15:0] current_pc_to_btb;
+logic [15:0] current_pc_btb;
+
+logic is_pc_jump_reg;
 
 logic [2:0] counter;
 
@@ -73,64 +75,66 @@ end
 // Second stage, we save current_pc_reg it is a jump instruction
 always_ff @(posedge clk) begin
     if (rst) begin
-        current_pc_to_btb <= 16'd0;
+        current_pc_btb <= 16'd0;
+        is_pc_jump_reg <= 1'b0;
     end
     else begin
-        if (vaild_rf_read & is_pc_jump) begin
-            // Now we need to save this pc
-            current_pc_to_btb <= current_pc_reg;
+        if (valid_rf_read) begin
+            if (is_pc_jump) begin
+                // Now we need to save this pc
+                current_pc_btb <= current_pc_reg;
+            end
+            is_pc_jump_reg <= is_pc_jump;
         end
     end
 end
 
 // Third stage, now we update the btb to reflect the new branch
 
-genvar i;
-generate
-    for (i=0;i<8;i++) begin:
-        always_ff @(posedge clk) begin
-            if(rst) begin
-                btb[i] <= 0;
-            end
-        end
-    end
-endgenerate
-
 always_ff @(posedge clk) begin
     if (rst) begin
         counter <= 3'd0;
+        btb[0] <= 0;
+        btb[1] <= 0;
+        btb[2] <= 0;
+        btb[3] <= 0;
+        btb[4] <= 0;
+        btb[5] <= 0;
+        btb[6] <= 0;
+        btb[7] <= 0;
+
     end
-    else if (valid_execute) begin
+    else if (valid_execute & is_pc_jump_reg) begin
         // We try to update exsisting entries first
-        if (btb[0][0] & (current_pc_to_btb == btb[0][16:1])) begin
+        if (btb[0][0] & (current_pc_btb == btb[0][16:1])) begin
             btb[0][33] <= jump;
             btb[0][32:17] <= target_pc;
         end
-        else if (btb[1][0] & (current_pc_to_btb == btb[1][16:1])) begin
+        else if (btb[1][0] & (current_pc_btb == btb[1][16:1])) begin
             btb[1][33] <= jump;
             btb[1][32:17] <= target_pc;
         end
-        else if (btb[2][0] & (current_pc_to_btb == btb[2][16:1])) begin
+        else if (btb[2][0] & (current_pc_btb == btb[2][16:1])) begin
             btb[2][33] <= jump;
-            btb[1][32:17] <= target_pc;
+            btb[2][32:17] <= target_pc;
         end
-        else if (btb[3][0] & (current_pc_to_btb == btb[3][16:1])) begin
+        else if (btb[3][0] & (current_pc_btb == btb[3][16:1])) begin
             btb[3][33] <= jump;
-            btb[1][32:17] <= target_pc;
+            btb[3][32:17] <= target_pc;
         end
-        else if (btb[4][0] & (current_pc_to_btb == btb[4][16:1])) begin
+        else if (btb[4][0] & (current_pc_btb == btb[4][16:1])) begin
             btb[4][33] <= jump;
             btb[4][32:17] <= target_pc;
         end
-        else if (btb[5][0] & (current_pc_to_btb == btb[5][16:1])) begin
+        else if (btb[5][0] & (current_pc_btb == btb[5][16:1])) begin
             btb[5][33] <= jump;
             btb[5][32:17] <= target_pc;
         end
-        else if (btb[6][0] & (current_pc_to_btb == btb[6][16:1])) begin
+        else if (btb[6][0] & (current_pc_btb == btb[6][16:1])) begin
             btb[6][33] <= jump;
             btb[6][32:17] <= target_pc;
         end
-        else if (btb[7][0] & (current_pc_to_btb == btb[7][16:1])) begin
+        else if (btb[7][0] & (current_pc_btb == btb[7][16:1])) begin
             btb[7][33] <= jump;
             btb[7][32:17] <= target_pc;
         end
@@ -139,7 +143,7 @@ always_ff @(posedge clk) begin
             if (counter == 3'd7) begin
                 // We can't insert any new entry -> just predict jump always
                 // not taken
-                counter <= 3'd7
+                counter <= 3'd7;
             end
             else begin
                 counter <= counter + 1;

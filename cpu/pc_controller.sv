@@ -41,7 +41,7 @@ flag_forwarding i_flag_forwarding (
     .i_ir_out_in_execute_stage(i_ir_out_in_execute_stage),
     .real_z                   (real_z                   ),
     .real_n                   (real_n                   )
-);
+); 
 
 always_comb begin
     case(mem_data[3:0])

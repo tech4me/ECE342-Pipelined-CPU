@@ -1,5 +1,7 @@
 `include "op.svh"
 module stage_execute(
+    /*input clk,
+    input reset,*/
     input valid_in,
 	input [15:0]op_out_A,
 	input [15:0]op_out_B,
@@ -58,6 +60,9 @@ assign rf_A_forward_out = rf_forward_sel[0]? rf_forward_data : op_out_A;
 assign rf_B_forward_out = rf_forward_sel[1]? rf_forward_data : op_out_B;
 logic [15:0] fake_alu_out;// except for ld and st
 alu u_alu(
+    /*.clk(clk),
+    .reset(reset),
+    .inside_reg_enable(valid_in),*/
 	.in_a    (rf_A_forward_out ),
 	.in_b    (rf_B_forward_out ),
 	.sub     (alu_sub       ),

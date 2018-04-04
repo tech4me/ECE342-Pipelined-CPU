@@ -9,14 +9,16 @@ module stage_rf_read (
 
 
     //for branch
-    input forwarding_z,
+    input set_invalid_sig_to_rf_read,
+    input [15:0] pc_in_plus_2,
+   /* input forwarding_z,
     input forwarding_n,
     input z,
     input n,
     input [15:0] i_ir_out_in_execute_stage,
-    input [15:0] pc_in_plus_2,
+    
     output [15:0] pc_to_be_jumped,
-    output branch_sig,
+    output branch_sig,*/
 
     //for ld and st in rf read stage
     input  [1:0] detect_reg_in_rf_read_stage_ld_st,
@@ -35,10 +37,12 @@ module stage_rf_read (
     output reg_A_en,
     output reg_B_en,
     output [15:0] reg_A,
-    output [15:0] reg_B
+    output [15:0] reg_B,
+
+    output [15:0] rf_A_forward_out//for branching as output 
 );
 
-assign valid_out = valid_in;
+assign valid_out = set_invalid_sig_to_rf_read? 0 : valid_in;
 assign ir_enable = valid_in;
 
 assign ir = mem_data;
@@ -52,21 +56,22 @@ assign reg_B_en = valid_in;
 logic [1:0] alu_mux_a_sel;
 logic [2:0] alu_mux_b_sel;
 
-logic [15:0]rf_A_forward_out;
+//logic [15:0]rf_A_forward_out;
 logic [15:0]rf_B_forward_out;
 
-pc_controller u_pc_controller(
+/*pc_controller u_pc_controller(
 	.mem_data                  (mem_data                  ),
-    .forwarding_z              (forwarding_z              ),//
-    .forwarding_n              (forwarding_n              ),//
-    .z                         (z                         ),//
-    .n                         (n                         ),//
-    .i_ir_out_in_execute_stage (i_ir_out_in_execute_stage ),//
-    .forwarding_reg_A          (rf_A_forward_out          ),//
-    .pc_in_plus_2              (pc_in_plus_2              ),//
-    .pc_to_be_jumped           (pc_to_be_jumped           ),//
-    .branch_sig                (branch_sig                ) //
-);
+    .forwarding_z              (forwarding_z              ),
+    .forwarding_n              (forwarding_n              ),
+    .z                         (z                         ),
+    .n                         (n                         ),
+    .i_ir_out_in_execute_stage (i_ir_out_in_execute_stage ),
+    .forwarding_reg_A          (rf_A_forward_out          ),
+    .pc_in_plus_2              (pc_in_plus_2              ),
+    .pc_to_be_jumped           (pc_to_be_jumped           ),
+    .branch_sig                (branch_sig                ) 
+);*/
+
 
 always_comb begin
     case(mem_data[3:0])

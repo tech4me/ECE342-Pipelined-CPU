@@ -2,6 +2,9 @@
 module seq_detect(
     input clk,
     input rst,
+    input i_valid_out_in_rf_read_stage,  
+    input i_valid_out_in_execute_stage,
+    input i_valid_out_in_writeback_stage,
     input [15:0] o_mem_data_in_rf_read_stage,
     input [15:0] i_ir_out_in_execute_stage,// o_rf_read
     input [15:0] o_ir_out_in_execute_stage,
@@ -49,7 +52,7 @@ always_ff @(posedge clk) begin
     end
     else begin
         i_alu_reg_from_writeback_stage_in_execute_stage = (i_ir_out_in_execute_stage[3:0]==OP_MVHI)? {8'd0, o_alu_out_in_execute_stage[7:0]}: o_alu_out_in_execute_stage;
-        detect_reg_in_execute_stage<=sub_detect_reg_in_execute_stage;
+        detect_reg_in_execute_stage<= sub_detect_reg_in_execute_stage & {i_valid_out_in_execute_stage, i_valid_out_in_execute_stage};
     end
 end
 
@@ -126,7 +129,7 @@ sub_detect_br u_sub_detect_br(
 );
 //priority higher of execute than writeback
 assign i_alu_reg_from_writeback_stage_in_rf_read_stage = (detect_reg_in_rf_read_stage_br[0])? o_alu_out_in_execute_stage : i_alu_reg_in_writeback_stage;
-assign detect_reg_in_rf_read_stage = (detect_reg_in_rf_read_stage_br[0])? detect_reg_in_rf_read_stage_br : detect_reg_in_rf_read_stage_not_br;
+assign detect_reg_in_rf_read_stage ={i_valid_out_in_writeback_stage,i_valid_out_in_writeback_stage} & ((detect_reg_in_rf_read_stage_br[0])? detect_reg_in_rf_read_stage_br : detect_reg_in_rf_read_stage_not_br);
 
 //for LD and ST in rf_read stage
 
@@ -143,15 +146,16 @@ always_comb begin
         default: detect_to_be_writeback_ld_st = 0;
     endcase
 end
-
+logic [1:0] sub_detect_reg_in_rf_read_stage_ld_st;
 //next detect there is LD or ST instr in rf_read stage
 sub_detect_ld_st u_sub_detect_ld_st(
 	.detect_to_be_writeback            (detect_to_be_writeback_ld_st            ),
     .i_ir_out_in_to_be_corrected_stage (o_mem_data_in_rf_read_stage ),
     .i_ir_out_in_execute_stage       (real_i_ir_out_in_execute_stage       ),
-    .detect_signal                     (detect_reg_in_rf_read_stage_ld_st                     )
+    .detect_signal                     (sub_detect_reg_in_rf_read_stage_ld_st                     )
 );
 
+assign detect_reg_in_rf_read_stage_ld_st = sub_detect_reg_in_rf_read_stage_ld_st & {i_valid_out_in_writeback_stage, i_valid_out_in_writeback_stage};
 assign i_alu_reg_from_writeback_stage_in_rf_read_stage_ld_st = o_alu_out_in_execute_stage;
 
 endmodule
