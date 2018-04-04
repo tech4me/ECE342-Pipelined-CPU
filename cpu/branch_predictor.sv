@@ -13,7 +13,8 @@ module branch_predictor(
 
 // 8 Entry in prediction
 // |33 jump|32:17 target_pc|16:1 pc|0 valid|
-logic [7:0][33:0] btb;
+//logic [7:0][33:0] btb;
+logic [7:0][17:0] btb;
 
 logic [15:0] current_pc_reg;
 logic [15:0] current_pc_btb;
@@ -33,37 +34,37 @@ always_ff @(posedge clk) begin
 end
 
 always_comb begin
-    if (btb[0][0] & (current_pc == btb[0][16:1])) begin
-        prediction = btb[0][33];
-        prediction_pc = btb[0][32:17];
+    if (btb[0][0] & (current_pc[7:0] == btb[0][8:1])) begin
+        prediction = btb[0][17];
+        prediction_pc = {8'b0, btb[0][16:9]};
     end
-    else if (btb[1][0] & (current_pc == btb[1][16:1])) begin
-        prediction = btb[1][33];
-        prediction_pc = btb[1][32:17];
+    else if (btb[1][0] & (current_pc[7:0] == btb[1][8:1])) begin
+        prediction = btb[1][17];
+        prediction_pc = {8'b0, btb[1][16:9]};
     end
-    else if (btb[2][0] & (current_pc == btb[2][16:1])) begin
-        prediction = btb[2][33];
-        prediction_pc = btb[2][32:17];
+    else if (btb[2][0] & (current_pc[7:0] == btb[2][8:1])) begin
+        prediction = btb[2][17];
+        prediction_pc = {8'b0, btb[2][16:9]};
     end
-    else if (btb[3][0] & (current_pc == btb[3][16:1])) begin
-        prediction = btb[3][33];
-        prediction_pc = btb[3][32:17];
+    else if (btb[3][0] & (current_pc[7:0] == btb[3][8:1])) begin
+        prediction = btb[3][17];
+        prediction_pc = {8'b0, btb[3][16:9]};
     end
-    else if (btb[4][0] & (current_pc == btb[4][16:1])) begin
-        prediction = btb[4][33];
-        prediction_pc = btb[4][32:17];
+    else if (btb[4][0] & (current_pc[7:0] == btb[4][8:1])) begin
+        prediction = btb[4][17];
+        prediction_pc = {8'b0, btb[4][16:9]};
     end
-    else if (btb[5][0] & (current_pc == btb[5][16:1])) begin
-        prediction = btb[5][33];
-        prediction_pc = btb[5][32:17];
+    else if (btb[5][0] & (current_pc[7:0] == btb[5][8:1])) begin
+        prediction = btb[5][17];
+        prediction_pc = {8'b0, btb[5][16:9]};
     end
     else if (btb[6][0] & (current_pc == btb[6][16:1])) begin
-        prediction = btb[6][33];
-        prediction_pc = btb[6][32:17];
+        prediction = btb[6][17];
+        prediction_pc = {8'b0, btb[6][16:9]};
     end
     else if (btb[7][0] & (current_pc == btb[7][16:1])) begin
-        prediction = btb[7][33];
-        prediction_pc = btb[7][32:17];
+        prediction = btb[7][17];
+        prediction_pc = {8'b0, btb[7][16:9]};
     end
     else begin
         // Here we don't have the result just always predict branch not taken
@@ -107,36 +108,36 @@ always_ff @(posedge clk) begin
     else if (valid_execute & is_pc_jump_reg) begin
         // We try to update exsisting entries first
         if (btb[0][0] & (current_pc_btb == btb[0][16:1])) begin
-            btb[0][33] <= jump;
-            btb[0][32:17] <= target_pc;
+            btb[0][17] <= jump;
+            btb[0][16:9] <= target_pc[7:0];
         end
         else if (btb[1][0] & (current_pc_btb == btb[1][16:1])) begin
-            btb[1][33] <= jump;
-            btb[1][32:17] <= target_pc;
+            btb[1][17] <= jump;
+            btb[1][16:9] <= target_pc[7:0];
         end
         else if (btb[2][0] & (current_pc_btb == btb[2][16:1])) begin
-            btb[2][33] <= jump;
-            btb[2][32:17] <= target_pc;
+            btb[2][17] <= jump;
+            btb[2][16:9] <= target_pc[7:0];
         end
         else if (btb[3][0] & (current_pc_btb == btb[3][16:1])) begin
-            btb[3][33] <= jump;
-            btb[3][32:17] <= target_pc;
+            btb[3][17] <= jump;
+            btb[3][16:9] <= target_pc[7:0];
         end
         else if (btb[4][0] & (current_pc_btb == btb[4][16:1])) begin
-            btb[4][33] <= jump;
-            btb[4][32:17] <= target_pc;
+            btb[4][17] <= jump;
+            btb[4][16:9] <= target_pc[7:0];
         end
         else if (btb[5][0] & (current_pc_btb == btb[5][16:1])) begin
-            btb[5][33] <= jump;
-            btb[5][32:17] <= target_pc;
+            btb[5][17] <= jump;
+            btb[5][16:9] <= target_pc[7:0];
         end
         else if (btb[6][0] & (current_pc_btb == btb[6][16:1])) begin
-            btb[6][33] <= jump;
-            btb[6][32:17] <= target_pc;
+            btb[6][17] <= jump;
+            btb[6][16:9] <= target_pc[7:0];
         end
         else if (btb[7][0] & (current_pc_btb == btb[7][16:1])) begin
-            btb[7][33] <= jump;
-            btb[7][32:17] <= target_pc;
+            btb[7][17] <= jump;
+            btb[7][16:9] <= target_pc[7:0];
         end
         else begin
             // Here we don't have an matching entry, we try to insert new entry
@@ -150,52 +151,52 @@ always_ff @(posedge clk) begin
                 case (counter)
                     0: begin
                         btb[0][0] <= 1'b1;
-                        btb[0][16:1] <= current_pc_btb;
-                        btb[0][32:17] <= target_pc;
-                        btb[0][33] <= jump;
+                        btb[0][8:1] <= current_pc_btb[7:0];
+                        btb[0][16:9] <= target_pc[7:0];
+                        btb[0][17] <= jump;
                     end
                     1: begin
                         btb[1][0] <= 1'b1;
-                        btb[1][16:1] <= current_pc_btb;
-                        btb[1][32:17] <= target_pc;
-                        btb[1][33] <= jump;
+                        btb[1][8:1] <= current_pc_btb[7:0];
+                        btb[1][16:9] <= target_pc[7:0];
+                        btb[1][17] <= jump;
                     end
                     2: begin
                         btb[2][0] <= 1'b1;
-                        btb[2][16:1] <= current_pc_btb;
-                        btb[2][32:17] <= target_pc;
-                        btb[2][33] <= jump;
+                        btb[2][8:1] <= current_pc_btb[7:0];
+                        btb[2][16:9] <= target_pc[7:0];
+                        btb[2][17] <= jump;
                     end
                     3: begin
                         btb[3][0] <= 1'b1;
-                        btb[3][16:1] <= current_pc_btb;
-                        btb[3][32:17] <= target_pc;
-                        btb[3][33] <= jump;
+                        btb[3][8:1] <= current_pc_btb[7:0];
+                        btb[3][16:9] <= target_pc[7:0];
+                        btb[3][17] <= jump;
                     end
                     4: begin
                         btb[4][0] <= 1'b1;
-                        btb[4][16:1] <= current_pc_btb;
-                        btb[4][32:17] <= target_pc;
-                        btb[4][33] <= jump;
+                        btb[4][8:1] <= current_pc_btb[7:0];
+                        btb[4][16:9] <= target_pc[7:0];
+                        btb[4][17] <= jump;
                     end
                     5: begin
                         btb[5][0] <= 1'b1;
-                        btb[5][16:1] <= current_pc_btb;
-                        btb[5][32:17] <= target_pc;
-                        btb[5][33] <= jump;
+                        btb[5][8:1] <= current_pc_btb[7:0];
+                        btb[5][16:9] <= target_pc[7:0];
+                        btb[5][17] <= jump;
 
                     end
                     6: begin
                         btb[6][0] <= 1'b1;
-                        btb[6][16:1] <= current_pc_btb;
-                        btb[6][32:17] <= target_pc;
-                        btb[6][33] <= jump;
+                        btb[6][8:1] <= current_pc_btb[7:0];
+                        btb[6][16:9] <= target_pc[7:0];
+                        btb[6][17] <= jump;
                     end
                     7: begin
                         btb[7][0] <= 1'b1;
-                        btb[7][16:1] <= current_pc_btb;
-                        btb[7][32:17] <= target_pc;
-                        btb[7][33] <= jump;
+                        btb[7][8:1] <= current_pc_btb[7:0];
+                        btb[7][16:9] <= target_pc[7:0];
+                        btb[7][17] <= jump;
                     end
                 endcase
             end
