@@ -176,6 +176,80 @@ uint16_t execute_instruction(uint16_t pc)
     return pc;
 }
 
+uint16_t branch_always_nottaken(uint16_t pc)
+{
+    return pc + 2;
+}
+
+struct btb_entry
+{
+    bool valid = 0;
+    int history = -1;
+    uint16_t pc = 0xFFFF;
+};
+
+btb_entry btb[65536];
+
+uint16_t branch_1bit_history(uint16_t pc)
+{
+    if (btb[pc].valid)
+        return btb[pc].pc;
+    else
+        return pc + 2;
+}
+
+void branch_1bit_history_update(uint16_t pc, uint16_t target_pc)
+{
+    btb[pc].pc = target_pc;
+    btb[pc].valid = 1;
+}
+
+uint16_t branch_2bit_history(uint16_t pc)
+{
+    switch(btb[pc].history)
+    {
+        case -1: case -2:
+              return pc + 2;
+        case 1: case 2:
+              return btb[pc].pc;
+    }
+}
+
+void branch_2bit_history_update(uint16_t pc, uint16_t target_pc)
+{
+    bool taken = ((pc + 2) != target_pc);
+    std::cout << "Branch taken:" << taken << std::endl;
+    btb[pc].pc = target_pc;
+    if (btb[pc].history == 1)
+    {
+        if (taken)
+            btb[pc].history = 2;
+        else
+            btb[pc].history = -1;
+    }
+    else if (btb[pc].history == 2)
+    {
+        if (taken)
+            btb[pc].history = 2;
+        else
+            btb[pc].history = 1;
+    }
+    else if (btb[pc].history == -1)
+    {
+        if (taken)
+            btb[pc].history = 1;
+        else
+            btb[pc].history = -2;
+    }
+    else if (btb[pc].history == -2)
+    {
+        if (taken)
+            btb[pc].history = -1;
+        else
+            btb[pc].history = -2;
+    }
+}
+
 int main()
 {
     //std::ifstream f("0_basic.hex");
@@ -194,18 +268,31 @@ int main()
         mem[addr + 1] = (data & 0xFF00) >> 8;
     }
     //print_mem(0x0, 0x100);
+    int counter = 0;
+    int correct_counter = 0;
     uint16_t pc;
     for (pc = 0; pc < 0x1000; )
     {
         // Return new pc
         uint16_t old_pc = pc;
+        //uint16_t predict_pc = branch_always_nottaken(pc);
+        uint16_t predict_pc = branch_2bit_history(pc);
+        std::cout << "PC=" << std::hex << pc << std::endl;
         pc = execute_instruction(pc);
+        print_rf();
+        std::cout << "z:" << z << " n:" << n << std::endl;
+        if (predict_pc == pc)
+            correct_counter++;
+        else
+            std::cout << "Mis-predict PC=" << predict_pc << std::endl;
+        counter++;
+        branch_2bit_history_update(old_pc, pc);
         if (old_pc == pc)
-        {
             break;
-        }
     }
     std::cout << "Program finished! PC = " << pc << std::endl;
+    std::cout << "Number of instructions executed: " << counter << std::endl;
+    std::cout << "Branch prediction hit rate: " << correct_counter/(double)counter << std::endl;
     //print_rf();
     //print_mem(0x0, 0x100);
     return 0;
