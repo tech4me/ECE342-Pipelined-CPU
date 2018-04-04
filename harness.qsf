@@ -34,6 +34,9 @@ set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
 set_global_assignment -name ROUTER_LCELL_INSERTION_AND_LOGIC_DUPLICATION ON
 set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
 set_global_assignment -name QII_AUTO_PACKED_REGISTERS NORMAL
+set_global_assignment -name SYSTEMVERILOG_FILE cpu/sub_detect_not_br.sv
+set_global_assignment -name SYSTEMVERILOG_FILE cpu/pc_controller_v2.sv
+set_global_assignment -name SYSTEMVERILOG_FILE cpu/branch_predictor.sv
 set_global_assignment -name SYSTEMVERILOG_FILE cpu/sub_detect_ld_st.sv
 set_global_assignment -name SYSTEMVERILOG_FILE cpu/sub_detect_br.sv
 set_global_assignment -name SYSTEMVERILOG_FILE cpu/pc_controller.sv

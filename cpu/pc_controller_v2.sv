@@ -203,8 +203,12 @@ always_comb begin
                         else
                         pc_in_from_execute_stage = original_pc_rf_read + 2'd2;
                     end
-                    else 
+                    else begin
+                    if(n)
                     pc_in_from_execute_stage = forwarding_reg_A_reg;
+                    else
+                    pc_in_from_execute_stage = original_pc_rf_read + 2'd2;
+                    end
                 end
         OP_JZ_X:begin
                     if(i_ir_out_in_execute_stage[4]) begin
@@ -213,8 +217,12 @@ always_comb begin
                         else
                         pc_in_from_execute_stage = original_pc_rf_read + 2'd2;
                     end
-                    else 
+                    else begin
+                    if(z)
                     pc_in_from_execute_stage = forwarding_reg_A_reg;
+                    else
+                    pc_in_from_execute_stage = original_pc_rf_read + 2'd2;
+                    end
                 end
         OP_CALL_X:begin
                     if(i_ir_out_in_execute_stage[4]) begin

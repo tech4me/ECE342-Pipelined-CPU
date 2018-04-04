@@ -12,7 +12,8 @@ always_ff @(posedge clk) begin
     if(rst)
         pc_out <= 16'b0;
     else if(enable)
-        pc_out <= (branch_sig) ? pc_to_be_jumped : (pc_out + 2);
+        //pc_out <= (branch_sig) ? pc_to_be_jumped : (pc_out + 2);
+        pc_out <= pc_to_be_jumped;
 end
 
 endmodule

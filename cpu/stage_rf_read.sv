@@ -147,13 +147,13 @@ assign o_ldst_wrdata = detect_reg_in_rf_read_stage_ld_st[0]? i_alu_reg_from_writ
 always_comb begin
     case(mem_data[3:0])
         OP_LD: begin 
-                o_ldst_rd = valid_in;
+                o_ldst_rd = valid_out;
 			    o_ldst_wr=0;
                 o_ldst_addr [15:1] = detect_reg_in_rf_read_stage_ld_st[1]? i_alu_reg_from_writeback_stage_in_rf_read_stage_ld_st[15:1] : rf_B_forward_out[15:1];
                 o_ldst_addr[0] = 0;
                end
         OP_ST: begin
-                o_ldst_wr = valid_in;
+                o_ldst_wr = valid_out;
 			    o_ldst_rd=0;
                 o_ldst_addr [15:1] = detect_reg_in_rf_read_stage_ld_st[1]? i_alu_reg_from_writeback_stage_in_rf_read_stage_ld_st[15:1] : rf_B_forward_out[15:1];
                 o_ldst_addr[0] = 0;
