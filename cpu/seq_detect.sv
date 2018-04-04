@@ -94,7 +94,7 @@ sub_detect u_rf_read(
     .detect_signal(detect_reg_in_rf_read_stage_not_br)
 );
 //belwo is for execute stage
-sub_detect u_execute(
+sub_detect_not_br u_execute(
     .detect_to_be_writeback(detect_to_be_writeback_for_execute_stage),
     .i_ir_out_in_to_be_corrected_stage(i_ir_out_in_execute_stage),
     .i_ir_out_in_writeback_stage(o_ir_out_in_execute_stage),
@@ -129,7 +129,9 @@ sub_detect_br u_sub_detect_br(
 );
 //priority higher of execute than writeback
 assign i_alu_reg_from_writeback_stage_in_rf_read_stage = (detect_reg_in_rf_read_stage_br[0])? o_alu_out_in_execute_stage : i_alu_reg_in_writeback_stage;
-assign detect_reg_in_rf_read_stage ={i_valid_out_in_writeback_stage,i_valid_out_in_writeback_stage} & ((detect_reg_in_rf_read_stage_br[0])? detect_reg_in_rf_read_stage_br : detect_reg_in_rf_read_stage_not_br);
+assign detect_reg_in_rf_read_stage = (detect_reg_in_rf_read_stage_br[0])? 
+    ({i_valid_out_in_execute_stage,i_valid_out_in_execute_stage} & detect_reg_in_rf_read_stage_br )
+    : ({i_valid_out_in_writeback_stage,i_valid_out_in_writeback_stage} & detect_reg_in_rf_read_stage_not_br);
 
 //for LD and ST in rf_read stage
 
@@ -155,7 +157,7 @@ sub_detect_ld_st u_sub_detect_ld_st(
     .detect_signal                     (sub_detect_reg_in_rf_read_stage_ld_st                     )
 );
 
-assign detect_reg_in_rf_read_stage_ld_st = sub_detect_reg_in_rf_read_stage_ld_st & {i_valid_out_in_writeback_stage, i_valid_out_in_writeback_stage};
+assign detect_reg_in_rf_read_stage_ld_st = sub_detect_reg_in_rf_read_stage_ld_st & {i_valid_out_in_rf_read_stage, i_valid_out_in_rf_read_stage};
 assign i_alu_reg_from_writeback_stage_in_rf_read_stage_ld_st = o_alu_out_in_execute_stage;
 
 endmodule

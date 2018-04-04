@@ -48,8 +48,8 @@ always_ff @( posedge clk ) begin
         original_pc_fetch <= 0;
     end
     else if(valid_in_fetch_stage) begin
-        branch_sig_reg_from_fetch_stage_to_rf_read_stage <= prediction_sig;
-        pc_in_reg_from_fetch_stage_to_rf_read_stage <= prediction_pc;
+        branch_sig_reg_from_fetch_stage_to_rf_read_stage <= branch_sig_from_fetch_stage;
+        pc_in_reg_from_fetch_stage_to_rf_read_stage <= pc_in_from_fetch_stage;
         original_pc_fetch <= i_pc_out_in_fetch_stage;
     end
 end
