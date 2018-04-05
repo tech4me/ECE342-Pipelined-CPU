@@ -139,8 +139,8 @@ assign correct_branch_sig_from_fetch_stage_checked_in_rf_read_stage = (~uncondit
     (uncondition_br_valid && branch_sig_reg_from_fetch_stage_to_rf_read_stage)  
     &&(pc_in_reg_from_fetch_stage_to_rf_read_stage == pc_in_from_rf_read_stage)
     );
-
-always_comb begin
+assign  pc_in_from_rf_read_stage = original_pc_fetch + 2'd2 + ({{5{mem_data[15]}}, mem_data[15:5]} << 1);
+/*always_comb begin
     case(mem_data[3:0])
         OP_J_X: begin
                     if(mem_data[4]) begin
@@ -149,20 +149,6 @@ always_comb begin
                     else 
                     pc_in_from_rf_read_stage = pc_in_reg_from_fetch_stage_to_rf_read_stage;
                 end
-        /*OP_JN_X:begin
-                    if(mem_data[4]) begin
-                        pc_in_from_rf_read_stage = original_pc_fetch + 2'd2 + ({{5{mem_data[15]}}, mem_data[15:5]} << 1);
-                    end
-                    else 
-                    pc_in_from_rf_read_stage = forwarding_reg_A;
-                end
-        OP_JZ_X:begin
-                    if(mem_data[4]) begin
-                        pc_in_from_rf_read_stage = original_pc_fetch + 2'd2 + ({{5{mem_data[15]}}, mem_data[15:5]} << 1);
-                    end
-                    else 
-                    pc_in_from_rf_read_stage = forwarding_reg_A;
-                end*/
         OP_CALL_X:begin
                     if(mem_data[4]) begin
                         pc_in_from_rf_read_stage = original_pc_fetch + 2'd2 + ({{5{mem_data[15]}}, mem_data[15:5]} << 1);
@@ -173,9 +159,10 @@ always_comb begin
         default: pc_in_from_rf_read_stage = pc_in_reg_from_fetch_stage_to_rf_read_stage;
     endcase  
 end
-
+*/
 logic [15:0] forwarding_reg_A_reg;
 logic [15:0] pc_in_from_rf_read_stage_to_execute_stage_for_compare;
+logic [15:0] pre_compute_pc;
 
 always_ff @(posedge clk) begin
     if(reset) begin
@@ -186,6 +173,7 @@ always_ff @(posedge clk) begin
         is_branch_instr_or_not_reg_in_execute_stage <= 0;
         forwarding_reg_A_reg <= 0;
         pc_in_from_rf_read_stage_to_execute_stage_for_compare <= 0;
+        pre_compute_pc <= 0;
     end
     else if(valid_in_rf_read_stage) begin
       //  mem_data_reg_from_rf_read_stage_to_execute_stage <= mem_data;
@@ -195,6 +183,7 @@ always_ff @(posedge clk) begin
         is_branch_instr_or_not_reg_in_execute_stage<= is_branch_instr_or_not_in_rf_read_stage;
         forwarding_reg_A_reg <= real_RA;
         pc_in_from_rf_read_stage_to_execute_stage_for_compare <= pc_in_reg_from_fetch_stage_to_rf_read_stage;
+        pre_compute_pc <= pc_in_from_rf_read_stage;
     end
 end
 
@@ -243,7 +232,7 @@ always_comb begin
     case(i_ir_out_in_execute_stage[3:0])
         OP_J_X: begin
                     if(i_ir_out_in_execute_stage[4]) begin
-                        pc_in_from_execute_stage = original_pc_rf_read + 2'd2 + ({{5{i_ir_out_in_execute_stage[15]}}, i_ir_out_in_execute_stage[15:5]} << 1);
+                        pc_in_from_execute_stage = pre_compute_pc;
                     end
                     else 
                     pc_in_from_execute_stage = detect_reg_in_rf_read_stage_br_new[0]? i_alu_out_in_writeback_stage :forwarding_reg_A_reg;
@@ -251,7 +240,7 @@ always_comb begin
         OP_JN_X:begin
                     if(i_ir_out_in_execute_stage[4]) begin
                         if(n)
-                        pc_in_from_execute_stage = original_pc_rf_read + 2'd2 + ({{5{i_ir_out_in_execute_stage[15]}}, i_ir_out_in_execute_stage[15:5]} << 1);
+                        pc_in_from_execute_stage = pre_compute_pc;
                         else
                         pc_in_from_execute_stage = original_pc_rf_read + 2'd2;
                     end
@@ -265,7 +254,7 @@ always_comb begin
         OP_JZ_X:begin
                     if(i_ir_out_in_execute_stage[4]) begin
                         if(z)
-                        pc_in_from_execute_stage = original_pc_rf_read + 2'd2 + ({{5{i_ir_out_in_execute_stage[15]}}, i_ir_out_in_execute_stage[15:5]} << 1);
+                        pc_in_from_execute_stage = pre_compute_pc;
                         else
                         pc_in_from_execute_stage = original_pc_rf_read + 2'd2;
                     end
@@ -278,7 +267,7 @@ always_comb begin
                 end
         OP_CALL_X:begin
                     if(i_ir_out_in_execute_stage[4]) begin
-                        pc_in_from_execute_stage = original_pc_rf_read + 2'd2 + ({{5{i_ir_out_in_execute_stage[15]}}, i_ir_out_in_execute_stage[15:5]} << 1);
+                        pc_in_from_execute_stage = pre_compute_pc;
                     end
                     else 
                     pc_in_from_execute_stage = detect_reg_in_rf_read_stage_br_new[0]? i_alu_out_in_writeback_stage :forwarding_reg_A_reg;
