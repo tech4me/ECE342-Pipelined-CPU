@@ -350,12 +350,13 @@ valid_bit u_valid_bit_execute(
     
 
 //blue bird module
-pc_controller_v2 u_pc_controller_v2(
+pc_controller_v3 u_pc_controller_v3(
 	.clk                          (clk                          ),
     .reset                        (reset                        ),
     .i_pc_out_in_fetch_stage      (i_pc_out_in_fetch_stage      ),
     .i_ir_out_in_execute_stage    (i_ir_out_in_execute_stage    ),
-    .forwarding_reg_A             (rf_A_forward_out             ),
+    .i_ir_out_in_writeback_stage  (i_ir_out_in_writeback_stage),
+    .real_RA             (i_rf_out_A_to_rf_read             ),
     .i_alu_out_in_writeback_stage (i_alu_reg_in_writeback_stage ),
     .valid_in_fetch_stage         (1'b1         ),
     .valid_in_rf_read_stage       (i_valid_out_in_rf_read_stage       ),
