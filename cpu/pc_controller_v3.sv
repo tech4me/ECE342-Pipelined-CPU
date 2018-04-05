@@ -194,7 +194,7 @@ always_ff @(posedge clk) begin
         branch_sig_reg_from_rf_read_stage_to_execute_stage <= branch_sig_reg_from_fetch_stage_to_rf_read_stage;
         is_branch_instr_or_not_reg_in_execute_stage<= is_branch_instr_or_not_in_rf_read_stage;
         forwarding_reg_A_reg <= real_RA;
-        pc_in_from_rf_read_stage_to_execute_stage_for_compare <= pc_in_from_rf_read_stage;
+        pc_in_from_rf_read_stage_to_execute_stage_for_compare <= pc_in_reg_from_fetch_stage_to_rf_read_stage;
     end
 end
 
