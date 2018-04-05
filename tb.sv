@@ -319,6 +319,8 @@ cd E:ece342/lab7_draft/lab7_kit/
 vlog *.sv cpu/*.sv
 vsim -novopt tb
 run -all
+
+vlog *.sv cpu/*.sv
 restart -f
 run -all
 */

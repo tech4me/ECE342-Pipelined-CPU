@@ -38,8 +38,13 @@ logic [15:0] pc_in_reg_from_fetch_stage_to_rf_read_stage;
 logic branch_sig_reg_from_fetch_stage_to_rf_read_stage;
 logic branch_sig_from_fetch_stage;
 
+//here is to test without prediction case
+//assign pc_in_from_fetch_stage = i_pc_out_in_fetch_stage+2;
+//assign branch_sig_from_fetch_stage = 0;
+
 assign pc_in_from_fetch_stage = prediction_pc;
 assign branch_sig_from_fetch_stage = prediction_sig;
+
 
 always_ff @( posedge clk ) begin
     if(reset) begin
@@ -102,7 +107,7 @@ always_comb begin
                     else 
                     pc_in_from_rf_read_stage = forwarding_reg_A;
                 end
-        OP_JN_X:begin
+        /*OP_JN_X:begin
                     if(mem_data[4]) begin
                         pc_in_from_rf_read_stage = original_pc_fetch + 2'd2 + ({{5{mem_data[15]}}, mem_data[15:5]} << 1);
                     end
@@ -115,7 +120,7 @@ always_comb begin
                     end
                     else 
                     pc_in_from_rf_read_stage = forwarding_reg_A;
-                end
+                end*/
         OP_CALL_X:begin
                     if(mem_data[4]) begin
                         pc_in_from_rf_read_stage = original_pc_fetch + 2'd2 + ({{5{mem_data[15]}}, mem_data[15:5]} << 1);
