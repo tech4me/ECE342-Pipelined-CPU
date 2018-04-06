@@ -32,7 +32,105 @@ always_ff @(posedge clk) begin
         current_pc_reg <= current_pc;
     end
 end
+/*
+logic [7:0] temp;
+always_comb begin
+    if (btb[0][0] & (current_pc[7:0] == btb[0][8:1])) begin
+        temp[0] = 1;
+    end
+    else begin
+        temp[0] = 0;
+    end
+     if (btb[1][0] & (current_pc[7:0] == btb[1][8:1])) begin
+        temp[1] = 1;
+    end
+    else begin
+        temp[1] = 0;
+    end
+     if (btb[2][0] & (current_pc[7:0] == btb[2][8:1])) begin
+        temp[2] = 1;
+    end
+    else begin
+        temp[2] = 0;
+    end
+     if (btb[3][0] & (current_pc[7:0] == btb[3][8:1])) begin
+        temp[3] = 1;
+    end
+    else begin
+        temp[3] = 0;
+    end
+     if (btb[4][0] & (current_pc[7:0] == btb[4][8:1])) begin
+        temp[4] = 1;
+    end
+    else begin
+        temp[4] = 0;
+    end
+     if (btb[5][0] & (current_pc[7:0] == btb[5][8:1])) begin
+        temp[5] = 1;
+    end
+    else begin
+        temp[5] = 0;
+    end
+     if (btb[6][0] & (current_pc == btb[6][16:1])) begin
+        temp[6] = 1;
+    end
+    else begin
+        temp[6] = 0;
+    end
+     if (btb[7][0] & (current_pc == btb[7][16:1])) begin
+        temp[7] = 1;
+    end
+    else begin
+        temp[7] = 0;
+    end
+    
+end
 
+always_comb begin
+    case(temp)
+        8'b00000001:begin
+            prediction = btb[0][17];
+            prediction_pc = {8'b0, btb[0][16:9]};
+                    end
+        8'b00000010:begin
+            prediction = btb[1][17];
+            prediction_pc = {8'b0, btb[1][16:9]};
+                    end
+        8'b00000100:begin
+            prediction = btb[2][17];
+            prediction_pc = {8'b0, btb[2][16:9]};
+                    end
+        8'b00001000:begin
+            prediction = btb[3][17];
+            prediction_pc = {8'b0, btb[3][16:9]};
+                    end
+        8'b00010000:begin
+            prediction = btb[4][17];
+            prediction_pc = {8'b0, btb[4][16:9]};
+                    end
+        8'b00100000:begin
+            prediction = btb[5][17];
+            prediction_pc = {8'b0, btb[5][16:9]};
+                    end
+        8'b01000000:begin
+            prediction = btb[6][17];
+            prediction_pc = {8'b0, btb[6][16:9]};
+                    end
+        8'b10000000:begin
+            prediction = btb[7][17];
+            prediction_pc = {8'b0, btb[7][16:9]};
+                    end
+
+        default: begin
+            prediction = 0;
+            prediction_pc = current_pc + 2;
+            end
+    endcase
+    
+end
+
+
+*/
 always_comb begin
     if (btb[0][0] & (current_pc[7:0] == btb[0][8:1])) begin
         prediction = btb[0][17];

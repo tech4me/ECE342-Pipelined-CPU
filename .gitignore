@@ -2,3 +2,6 @@ work/
 db/
 incremental_db/
 out/
+.qsys_edit/filters.xml
+.qsys_edit/preferences.xml
+greybox_tmp/cbx_args.txt

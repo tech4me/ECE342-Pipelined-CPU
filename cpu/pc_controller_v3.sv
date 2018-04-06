@@ -341,13 +341,13 @@ module br_sel_controller(
 );
 
 always_comb begin
-    if(valid_in_cycle_3 && (~correct_branch_sig_from_fetch_stage_checked_in_execute_stage) && valid_in_execute_stage &&is_branch_instr_or_not_reg_in_execute_stage) begin
+    if(valid_in_cycle_3 & (~correct_branch_sig_from_fetch_stage_checked_in_execute_stage) & valid_in_execute_stage &is_branch_instr_or_not_reg_in_execute_stage) begin
         branch_sig = actual_jump_or_not;
         pc_in_br = pc_in_from_execute_stage;
         set_invalid_sig_to_fetch = 1;
         set_invalid_sig_to_rf_read = 1;
     end
-    else if( (~correct_branch_sig_from_fetch_stage_checked_in_rf_read_stage) && valid_in_rf_read_stage &&is_branch_instr_or_not_in_rf_read_stage) begin
+    else if( (~correct_branch_sig_from_fetch_stage_checked_in_rf_read_stage) & valid_in_rf_read_stage &is_branch_instr_or_not_in_rf_read_stage) begin
         branch_sig = uncondition_br_valid;
         pc_in_br = pc_in_from_rf_read_stage;
         set_invalid_sig_to_fetch = 1;
